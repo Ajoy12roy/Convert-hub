@@ -1,65 +1,142 @@
-import Image from "next/image";
+import { Gift, ArrowRight, Upload, Settings, Download, Zap, ShieldCheck, Layers } from 'lucide-react';
+import InfiniteScroller from '@/components/ui/InfiniteScroller';
+import Footer from '@/components/layout/Footer';
 
 export default function Home() {
+  // Row 1: Document & Image Focus
+  const row1 = [
+    { from: 'PDF', to: 'Word' }, { from: 'JPG', to: 'PNG' }, { from: 'Word', to: 'PDF' },
+    { from: 'PNG', to: 'JPG' }, { from: 'PDF', to: 'JPG' }, { from: 'DOCX', to: 'PDF' },
+    { from: 'HEIC', to: 'JPG' }, { from: 'WEBP', to: 'PNG' }
+  ];
+
+  // Row 2: Scientific & Unit Focus (As requested: deg to kelvin, etc)
+  const row2 = [
+    { from: 'DEG', to: 'KEL' }, { from: 'CEL', to: 'FAR' }, { from: 'KG', to: 'LBS' },
+    { from: 'MILE', to: 'KM' }, { from: 'MTR', to: 'FEET' }, { from: 'BAR', to: 'PSI' },
+    { from: 'WATT', to: 'HP' }, { from: 'LIT', to: 'GAL' }
+  ];
+
+  // Row 3: Media & Code Focus
+  const row3 = [
+    { from: 'MP4', to: 'MP3' }, { from: 'JS', to: 'TS' }, { from: 'MP3', to: 'WAV' },
+    { from: 'CSS', to: 'SCSS' }, { from: 'MOV', to: 'MP4' }, { from: 'JSON', to: 'YAML' },
+    { from: 'HTML', to: 'JSX' }, { from: 'MD', to: 'HTML' }
+  ];
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <main className="min-h-screen bg-white">
+      {/* 1. HERO SECTION */}
+      <section className="relative pt-20 pb-24 px-4 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-fuchsia-50/50 via-white to-white">
+        <div className="max-w-5xl mx-auto text-center">
+          <div className="inline-flex items-center space-x-2 bg-white border border-gray-100 px-4 py-1.5 rounded-full mb-12 shadow-sm">
+            <Gift className="w-4 h-4 text-purple-400" />
+            <span className="text-sm text-gray-600 font-medium tracking-tight">Free to use · No limits on small files</span>
+          </div>
+          <h1 className="text-6xl md:text-[5.5rem] leading-[1.05] font-extrabold tracking-tight mb-8">
+            <span className="text-slate-900">Convert </span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-purple-400 to-purple-300">Anything</span>
+            <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-pink-500 to-pink-400">Anywhere</span>
+            <span className="text-slate-900">.</span>
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-xl text-slate-500 mb-12 max-w-2xl mx-auto leading-relaxed">
+            The premium multi-tool converter for documents, images, video, and code.
           </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6">
+            <button className="flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white px-10 py-4 rounded-full text-lg font-bold transition-all shadow-lg group">
+              <span>Start Converting</span>
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </button>
+            <button className="bg-white hover:bg-gray-50 border border-gray-200 text-slate-900 px-10 py-4 rounded-full text-lg font-bold transition-all">Try Code Converter</button>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      {/* 2. THREE-LINE ANIMATED POPULAR CONVERSIONS */}
+      <section className="py-20 bg-slate-50/50 overflow-hidden border-y border-gray-100">
+        <div className="max-w-6xl mx-auto text-center px-4 mb-12">
+          <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4">Popular Conversions</h2>
+          <p className="text-slate-500">Quick access to our most used conversion tools</p>
         </div>
-      </main>
+        
+        <div className="flex flex-col gap-5">
+          {/* Line 1: Left to Right */}
+          <InfiniteScroller items={row1} speed={50} direction="left-to-right" />
+          
+          {/* Line 2: Right to Left */}
+          <InfiniteScroller items={row2} speed={50} direction="right-to-left" />
+          
+          {/* Line 3: Left to Right */}
+          <InfiniteScroller items={row3} speed={45} direction="left-to-right" />
+        </div>
+      </section>
+
+      {/* 3. HOW IT WORKS */}
+      <section className="py-24 px-4">
+        <div className="max-w-6xl mx-auto text-center">
+          <h2 className="text-4xl font-extrabold text-slate-900 mb-4">How It Works</h2>
+          <p className="text-slate-500 mb-16">Convert your files in three simple steps</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            <StepCard icon={<Upload className="w-10 h-10 text-purple-600" />} title="1. Upload File" desc="Select the file you want to convert from your device." bg="bg-purple-50" border="border-purple-100" />
+            <StepCard icon={<Settings className="w-10 h-10 text-blue-600" />} title="2. Choose Format" desc="Pick your output format and let ConvertHub work its magic." bg="bg-blue-50" border="border-blue-100" />
+            <StepCard icon={<Download className="w-10 h-10 text-green-600" />} title="3. Download" desc="Your file is ready! Download it instantly to your device." bg="bg-green-50" border="border-green-100" />
+          </div>
+        </div>
+      </section>
+
+      {/* 4. WHY CHOOSE CONVERTHUB? */}
+      <section className="py-24 px-4 bg-slate-50/30">
+        <div className="max-w-6xl mx-auto text-center">
+          <h2 className="text-4xl font-extrabold text-slate-900 mb-4">Why Choose ConvertHub?</h2>
+          <p className="text-slate-500 mb-16">The best file conversion platform with powerful features</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <FeatureCard icon={<Zap className="w-6 h-6 text-green-600" />} title="Fast Conversion" desc="Lightning-fast conversion speed for all file types" iconBg="bg-green-100" />
+            <FeatureCard icon={<ShieldCheck className="w-6 h-6 text-blue-600" />} title="Secure Files" desc="Your files are encrypted and automatically deleted after conversion" iconBg="bg-blue-100" />
+            <FeatureCard icon={<Layers className="w-6 h-6 text-purple-600" />} title="Multiple Formats" desc="Support for hundreds of file formats across all categories" iconBg="bg-purple-100" />
+            <FeatureCard icon={<Gift className="w-6 h-6 text-pink-600" />} title="Free Tools" desc="All conversion tools are completely free with no limits" iconBg="bg-pink-100" />
+          </div>
+        </div>
+      </section>
+
+      {/* 5. READY TO CONVERT CTA */}
+      <section className="py-20 px-4">
+        <div className="max-w-6xl mx-auto bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 rounded-[3rem] p-12 md:p-20 text-center text-white shadow-2xl shadow-indigo-200">
+          <h2 className="text-4xl md:text-5xl font-extrabold mb-6">Ready to Convert Your Files?</h2>
+          <p className="text-white/80 text-lg mb-10 max-w-2xl mx-auto">Join thousands of users who trust ConvertHub for their file conversion needs</p>
+          <button className="bg-white text-indigo-600 px-10 py-4 rounded-full text-lg font-bold hover:bg-gray-50 transition-all flex items-center mx-auto space-x-2 group">
+            <span>Get Started Now</span>
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+          </button>
+        </div>
+      </section>
+
+      <Footer />
+    </main>
+  );
+}
+
+// Helper components
+function StepCard({ icon, title, desc, bg, border }: any) {
+  return (
+    <div className="flex flex-col items-center group">
+      <div className={`w-20 h-20 ${bg} rounded-3xl flex items-center justify-center mb-6 border ${border} group-hover:scale-110 transition-transform`}>
+        {icon}
+      </div>
+      <h3 className="text-xl font-bold mb-3 text-slate-800">{title}</h3>
+      <p className="text-slate-500 max-w-[250px]">{desc}</p>
+    </div>
+  );
+}
+
+function FeatureCard({ icon, title, desc, iconBg }: any) {
+  return (
+    <div className="flex flex-col items-center text-center p-6 bg-white rounded-2xl border border-gray-50 shadow-sm hover:shadow-md transition-shadow">
+      <div className={`w-14 h-14 ${iconBg} rounded-xl flex items-center justify-center mb-6`}>
+        {icon}
+      </div>
+      <h3 className="text-lg font-bold mb-2 text-slate-800">{title}</h3>
+      <p className="text-sm text-slate-500 leading-relaxed">{desc}</p>
     </div>
   );
 }
