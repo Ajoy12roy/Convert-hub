@@ -7,6 +7,8 @@ import { Upload } from 'lucide-react';
 export default function Navbar() {
   const pathname = usePathname();
 
+  const isActive = (path: string) => pathname === path;
+
   return (
     <nav className="w-full border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -25,18 +27,29 @@ export default function Navbar() {
 
           {/* Center Navigation Links */}
           <div className="hidden md:flex space-x-8">
-            <Link 
-              href="/" 
-              className={`${pathname === '/' ? 'text-purple-600 font-bold' : 'text-gray-600 font-medium'} text-sm hover:text-purple-600 transition-colors`}
-            >
-              Home
-            </Link>
-            <Link href="#" className="text-gray-600 hover:text-gray-900 font-medium text-sm transition-colors">Tools</Link>
-            <Link href="#" className="text-gray-600 hover:text-gray-900 font-medium text-sm transition-colors">Image</Link>
-            <Link href="#" className="text-gray-600 hover:text-gray-900 font-medium text-sm transition-colors">Video</Link>
-            <Link href="#" className="text-gray-600 hover:text-gray-900 font-medium text-sm transition-colors">Document</Link>
-            <Link href="#" className="text-gray-600 hover:text-gray-900 font-medium text-sm transition-colors">Code</Link>
-            <Link href="#" className="text-gray-600 hover:text-gray-900 font-medium text-sm transition-colors">Download</Link>
+            
+            <Link href="/" className={`text-sm font-semibold transition-colors ${
+                isActive('/') ? 'text-orange-500' : 'text-gray-600 hover:text-gray-900'
+              }`}>Home</Link>
+            <Link href="/tools" className={`text-sm font-semibold transition-colors ${
+                isActive('/tools') ? 'text-orange-500' : 'text-gray-600 hover:text-gray-900'
+              }`}>Tools</Link>
+            <Link href="/image" className={`text-sm font-semibold transition-colors ${
+                isActive('/image') ? 'text-orange-500' : 'text-gray-600 hover:text-gray-900'
+              }`}>Image</Link>
+            <Link href="/tools" className={`text-sm font-semibold transition-colors ${
+                isActive('/tools') ? 'text-orange-500' : 'text-gray-600 hover:text-gray-900'
+              }`}>Video</Link>
+            <Link href="/tools" className={`text-sm font-semibold transition-colors ${
+                isActive('/tools') ? 'text-orange-500' : 'text-gray-600 hover:text-gray-900'
+              }`}>Document</Link>
+            <Link href="/tools" className={`text-sm font-semibold transition-colors ${
+                isActive('/tools') ? 'text-orange-500' : 'text-gray-600 hover:text-gray-900'
+              }`}>Code</Link>
+            <Link href="/tools" className={`text-sm font-semibold transition-colors ${
+                isActive('/tools') ? 'text-orange-500' : 'text-gray-600 hover:text-gray-900'
+              }`}>Download</Link>
+            
           </div>
 
           {/* Right Action Buttons */}

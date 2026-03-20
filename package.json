@@ -9,6 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@imgly/background-removal": "^1.7.0",
+    "@mediapipe/selfie_segmentation": "^0.1.1675465747",
+    "cloudinary": "^2.9.0",
     "framer-motion": "^12.38.0",
     "lucide-react": "^0.577.0",
     "next": "16.1.7",

@@ -1,6 +1,8 @@
+"use client";
 import { Gift, ArrowRight, Upload, Settings, Download, Zap, ShieldCheck, Layers } from 'lucide-react';
 import InfiniteScroller from '@/components/ui/InfiniteScroller';
 import Footer from '@/components/layout/Footer';
+import { motion } from 'framer-motion';
 
 export default function Home() {
   // Row 1: Document & Image Focus
@@ -27,19 +29,55 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-white">
       {/* 1. HERO SECTION */}
-      <section className="relative pt-20 pb-24 px-4 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-fuchsia-50/50 via-white to-white">
+      <section className="relative pt-20 pb-24 px-4 bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-fuchsia-50/50 via-white to-white">
         <div className="max-w-5xl mx-auto text-center">
           <div className="inline-flex items-center space-x-2 bg-white border border-gray-100 px-4 py-1.5 rounded-full mb-12 shadow-sm">
             <Gift className="w-4 h-4 text-purple-400" />
             <span className="text-sm text-gray-600 font-medium tracking-tight">Free to use · No limits on small files</span>
           </div>
-          <h1 className="text-6xl md:text-[5.5rem] leading-[1.05] font-extrabold tracking-tight mb-8">
-            <span className="text-slate-900">Convert </span>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-purple-400 to-purple-300">Anything</span>
-            <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-pink-500 to-pink-400">Anywhere</span>
-            <span className="text-slate-900">.</span>
-          </h1>
+         <h1 className="text-[5rem] leading-[1.1] font-extrabold tracking-tight mb-8">
+          <span className="text-[#0F172A]">Convert </span>
+          
+      {/* 2. animation*/}
+
+<motion.span
+  className="inline-block pr-3"
+  animate={{
+    x: [-12, -12, 10, 10, -12], // left pause → move → right pause → move → left
+    color: [
+      "#000000", // start black
+      "#000000", // pause left
+      "#9333EA", // reached right → purple
+      "#9333EA", // pause right
+      "#000000", // back to black
+    ],
+    textShadow: [
+      "0px 0px 6px rgba(0,0,0,0.7)",          // subtle black glow
+      "0px 0px 6px rgba(0,0,0,0.7)",          // pause left
+      "0px 0px 12px rgba(147,51,234,0.9)",    // glow at right
+      "0px 0px 12px rgba(147,51,234,0.9)",    // pause right
+      "0px 0px 6px rgba(0,0,0,0.7)",          // back to black glow
+    ],
+  }}
+  transition={{
+    duration: 5, // full loop 5s for a slower, premium feel
+    times: [0, 0.2, 0.4, 0.7, 1], // pause durations included
+    ease: "easeInOut",
+    repeat: Infinity,
+  }}
+>
+  ⇄
+</motion.span>
+
+          <span className="text-transparent bg-clip-text bg-linear-to-r from-purple-600 via-purple-500 to-purple-400">
+            Anything
+          </span>
+          <br />
+          <span className="text-transparent bg-clip-text bg-linear-to-r from-pink-600 via-pink-500 to-pink-400">
+            Anywhere
+          </span>
+          <span className="text-gray-600"></span>
+        </h1>
           <p className="text-xl text-slate-500 mb-12 max-w-2xl mx-auto leading-relaxed">
             The premium multi-tool converter for documents, images, video, and code.
           </p>
@@ -60,9 +98,9 @@ export default function Home() {
           <p className="text-slate-500">Quick access to our most used conversion tools</p>
         </div>
         
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-4">
           {/* Line 1: Left to Right */}
-          <InfiniteScroller items={row1} speed={50} direction="left-to-right" />
+          <InfiniteScroller items={row1} speed={40} direction="left-to-right" />
           
           {/* Line 2: Right to Left */}
           <InfiniteScroller items={row2} speed={50} direction="right-to-left" />
@@ -101,7 +139,7 @@ export default function Home() {
 
       {/* 5. READY TO CONVERT CTA */}
       <section className="py-20 px-4">
-        <div className="max-w-6xl mx-auto bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 rounded-[3rem] p-12 md:p-20 text-center text-white shadow-2xl shadow-indigo-200">
+        <div className="max-w-6xl mx-auto bg-linear-to-r from-blue-500 via-indigo-500 to-purple-600 rounded-[3rem] p-12 md:p-20 text-center text-white shadow-2xl shadow-indigo-200">
           <h2 className="text-4xl md:text-5xl font-extrabold mb-6">Ready to Convert Your Files?</h2>
           <p className="text-white/80 text-lg mb-10 max-w-2xl mx-auto">Join thousands of users who trust ConvertHub for their file conversion needs</p>
           <button className="bg-white text-indigo-600 px-10 py-4 rounded-full text-lg font-bold hover:bg-gray-50 transition-all flex items-center mx-auto space-x-2 group">
@@ -117,6 +155,7 @@ export default function Home() {
 }
 
 // Helper components
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function StepCard({ icon, title, desc, bg, border }: any) {
   return (
     <div className="flex flex-col items-center group">
@@ -124,11 +163,12 @@ function StepCard({ icon, title, desc, bg, border }: any) {
         {icon}
       </div>
       <h3 className="text-xl font-bold mb-3 text-slate-800">{title}</h3>
-      <p className="text-slate-500 max-w-[250px]">{desc}</p>
+      <p className="text-slate-500 max-w-62.5">{desc}</p>
     </div>
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function FeatureCard({ icon, title, desc, iconBg }: any) {
   return (
     <div className="flex flex-col items-center text-center p-6 bg-white rounded-2xl border border-gray-50 shadow-sm hover:shadow-md transition-shadow">
