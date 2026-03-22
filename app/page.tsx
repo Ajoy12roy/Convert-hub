@@ -3,6 +3,7 @@ import { Gift, ArrowRight, Upload, Settings, Download, Zap, ShieldCheck, Layers 
 import InfiniteScroller from '@/components/ui/InfiniteScroller';
 import Footer from '@/components/layout/Footer';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 
 export default function Home() {
   // Row 1: Document & Image Focus
@@ -81,12 +82,16 @@ export default function Home() {
           <p className="text-xl text-slate-500 mb-12 max-w-2xl mx-auto leading-relaxed">
             The premium multi-tool converter for documents, images, video, and code.
           </p>
+           
           <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6">
+            <Link href="/auth">
             <button className="flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white px-10 py-4 rounded-full text-lg font-bold transition-all shadow-lg group">
               <span>Start Converting</span>
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>
+            </Link>
             <button className="bg-white hover:bg-gray-50 border border-gray-200 text-slate-900 px-10 py-4 rounded-full text-lg font-bold transition-all">Try Code Converter</button>
+       
           </div>
         </div>
       </section>

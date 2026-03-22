@@ -53,14 +53,17 @@ export default function Navbar() {
           </div>
 
           {/* Right Action Buttons */}
+          {/* Right Action Buttons */}
           <div className="flex items-center space-x-6">
-            <Link href="#" className="text-gray-600 hover:text-gray-900 font-medium text-sm transition-colors">
+            <Link href="/auth" className="text-gray-600 hover:text-gray-900 font-medium text-sm transition-colors">
               Sign In
             </Link>
-            <button className="flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-all shadow-md shadow-purple-500/20 active:scale-95">
-              <Upload className="w-4 h-4" />
-              <span>Upload</span>
-            </button>
+            <Link href="/auth">
+              <button className="flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-all shadow-md shadow-purple-500/20 active:scale-95">
+                <Upload className="w-4 h-4" />
+                <span>Get Started</span>
+              </button>
+            </Link>
           </div>
 
         </div>
