@@ -15,7 +15,7 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-20">
           
           {/* Logo Area */}
-          <Link href="/" className="flex-shrink-0 flex items-center cursor-pointer">
+          <Link href="/" className="shrink-0 flex items-center cursor-pointer">
             <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
               <span className="font-bold text-xl tracking-tight">
                 <span className="text-blue-500">C</span>
@@ -37,8 +37,8 @@ export default function Navbar() {
             <Link href="/image" className={`text-sm font-semibold transition-colors ${
                 isActive('/image') ? 'text-orange-500' : 'text-gray-600 hover:text-gray-900'
               }`}>Image</Link>
-            <Link href="/tools" className={`text-sm font-semibold transition-colors ${
-                isActive('/tools') ? 'text-orange-500' : 'text-gray-600 hover:text-gray-900'
+            <Link href="/video" className={`text-sm font-semibold transition-colors ${
+                isActive('/video') ? 'text-orange-500' : 'text-gray-600 hover:text-gray-900'
               }`}>Video</Link>
             <Link href="/tools" className={`text-sm font-semibold transition-colors ${
                 isActive('/tools') ? 'text-orange-500' : 'text-gray-600 hover:text-gray-900'

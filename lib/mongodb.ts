@@ -2,19 +2,19 @@ import mongoose from "mongoose";
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
-export const connectMongoDB = async () => {
-  try {
-    if (!MONGODB_URI) {
-      throw new Error("MONGODB_URI is not defined in .env.local");
-    }
+if (!MONGODB_URI) {
+  throw new Error("Please define the MONGODB_URI environment variable inside .env");
+}
 
+// আমরা নামটিকে 'connectDB' ফিক্সড করে দিচ্ছি যাতে API Route এটি খুঁজে পায়
+export const connectDB = async () => {
+  try {
     if (mongoose.connection.readyState >= 1) return;
 
     await mongoose.connect(MONGODB_URI);
-    console.log(">>> MongoDB Connected Successfully ✅");
+    console.log("✅ MongoDB Connected Successfully");
   } catch (error) {
-    console.error(">>> MongoDB Connection Error ❌:", error);
-    // সার্ভার এরর দেখার জন্য এটি থ্রো করা জরুরি
-    throw error;
+    console.error("❌ MongoDB Connection Error:", error);
+    throw new Error("Failed to connect to database");
   }
 };

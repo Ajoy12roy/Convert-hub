@@ -1,5 +1,5 @@
-import { connectMongoDB } from "@/lib/mongodb";
-import User from "@/models/User";
+import { connectDB } from "@/lib/mongodb";
+import {User} from "@/models/User";
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 
@@ -8,7 +8,7 @@ export async function POST(req: Request) {
     const { name, email, password } = await req.json();
     
     // ডাটাবেস কানেক্ট করার চেষ্টা
-    await connectMongoDB();
+await connectDB();
 
     // ইউজার অলরেডি আছে কি না চেক
     const userExists = await User.findOne({ email });
@@ -21,6 +21,7 @@ export async function POST(req: Request) {
     await User.create({ name, email, password: hashedPassword });
 
     return NextResponse.json({ message: "User registered successfully" }, { status: 201 });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error("Registration Error:", error);
     return NextResponse.json({ 

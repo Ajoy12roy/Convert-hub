@@ -1,13 +1,13 @@
+/* eslint-disable @typescript-eslint/no-unused-expressions */
 "use client";
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, EyeOff, Eye, Sparkles, Loader2, Check } from 'lucide-react';
+import { ArrowLeft, EyeOff, Eye, Sparkles, Loader2 } from 'lucide-react'; 
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 
-// 'otp' এবং 'reset' ভিউ যোগ করা হয়েছে
 type AuthView = 'signin' | 'signup' | 'forgot' | 'otp' | 'reset';
 
 export default function AuthPage() {
@@ -17,18 +17,15 @@ export default function AuthPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const router = useRouter();
 
-  // Form States
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
   });
 
-  // OTP & Reset States
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
 
-  // Logic: Load Saved Credentials
   useEffect(() => {
     const savedData = localStorage.getItem("rememberedUser");
     if (savedData) {
@@ -60,9 +57,6 @@ export default function AuthPage() {
     setView(newView);
   };
 
-  // --- Logic: Forgot Password Flow ---
-  
-  // ১. ওটিপি রিকোয়েস্ট (API call to send email)
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -78,14 +72,13 @@ export default function AuthPage() {
       } else {
         toast.error("User not found!");
       }
-    } catch (err) {
+    } catch { 
       toast.error("Failed to send OTP.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // ২. ওটিপি ভেরিফাই
   const handleVerifyOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -101,14 +94,13 @@ export default function AuthPage() {
       } else {
         toast.error("Invalid OTP code!");
       }
-    } catch (err) {
+    } catch {
       toast.error("Verification error.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // ৩. পাসওয়ার্ড রিসেট সম্পন্ন করা
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -124,7 +116,7 @@ export default function AuthPage() {
       } else {
         toast.error("Failed to reset password.");
       }
-    } catch (err) {
+    } catch {
       toast.error("An error occurred.");
     } finally {
       setIsLoading(false);
@@ -148,7 +140,7 @@ export default function AuthPage() {
         const error = await res.json();
         toast.error(error.message || "Registration failed!");
       }
-    } catch (err) {
+    } catch {
       toast.error("Something went wrong!");
     } finally {
       setIsLoading(false);
@@ -181,20 +173,64 @@ export default function AuthPage() {
         toast.success("Welcome back!");
         router.push("/");
       }
-    } catch (err) {
+    } catch {
       toast.error("An error occurred during sign in.");
     } finally {
       setIsLoading(false);
     }
   };
 
+  const SocialButtons = () => (
+    <div className="mt-6">
+      <div className="relative mb-6">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-white/5"></div>
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-[#0a0a0c] px-2 text-zinc-500">Or continue with</span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <button 
+          type="button"
+          onClick={() => signIn('google', { callbackUrl: '/' })}
+          className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl py-3 transition-all group"
+        >
+          <svg className="w-5 h-5" viewBox="0 0 24 24">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          <span className="text-sm text-white font-medium">Google</span>
+        </button>
+        <button 
+          type="button"
+          onClick={() => signIn('apple', { callbackUrl: '/' })}
+          className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl py-3 transition-all"
+        >
+          <svg className="w-5 h-5 fill-white" viewBox="0 0 384 512">
+            <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 21.8-88.5 21.8-11.4 0-51.1-22.1-82.6-21.6-40.4.6-81.8 24.2-102.5 60.1-41.9 72.8-11 180.3 29.8 238.9 20 28.8 44.5 61.2 75.6 60 30-1.1 41.3-19.1 77.2-19.1 35.5 0 45.4 19.1 77.2 18.5 32.2-.6 53.6-29.4 73.4-58.2 23-33.4 32.4-65.7 32.7-67.4-.7-.3-63.7-24.5-63.9-96.9zM286.9 84.1c16.2-19.4 27.1-46.3 24.1-73.1-23.2 1-51.4 15.5-68.1 35.1-15 17.5-28.1 45-24.6 70.6 25.8 2 52.5-13.2 68.6-32.6z"/>
+          </svg>
+          <span className="text-sm text-white font-medium">Apple</span>
+        </button>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="min-h-dvh w-full bg-[#030303] grid place-items-center py-4 px-4 relative overflow-hidden font-sans">
+    <div 
+      className={`w-full bg-[#030303] grid place-items-center py-10 px-4 relative overflow-hidden font-sans transition-[min-height] duration-500 ease-in-out ${
+        view === 'forgot' || view === 'otp' || view === 'reset' 
+        ? 'min-h-screen' 
+        : 'min-h-175 dvh' 
+      }`}
+    >
       <Toaster position="top-center" reverseOrder={false} />
       
-      <div className="absolute inset-0 bg-[radial-gradient(#27272a_1px,transparent_1px)] [background-size:20px_20px] opacity-15"></div>
+      <div className="absolute inset-0 bg-[radial-gradient(#27272a_1px,transparent_1px)] bg-size-[20px_20px] opacity-15"></div>
 
-      {/* Sparkles Animation */}
       <div className="absolute inset-0 pointer-events-none">
         {[...Array(40)].map((_, i) => (
           <motion.span
@@ -221,7 +257,6 @@ export default function AuthPage() {
             transition={{ type: "spring", stiffness: 400, damping: 35 }}
             className="relative w-full bg-[#0a0a0c]/70 backdrop-blur-3xl border border-white/10 px-7 py-6 rounded-4xl shadow-2xl"
           >
-            {/* Top Navigation */}
             <div className="flex flex-col items-center mb-5 relative">
               <button 
                 onClick={() => {
@@ -229,12 +264,12 @@ export default function AuthPage() {
                   else if (view === 'reset') paginate(-1, 'otp');
                   else view === 'signin' ? window.history.back() : paginate(-1, 'signin');
                 }}
-                className="absolute left-0 top-0 w-9 h-9 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white/60 transition-all"
+                className="absolute left-0 top-0 w-9 h-9 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white/60 hover:text-sky-500 hover:scale-110 transition-all"
               >
                 <ArrowLeft className="w-6 h-6" />
               </button>
               
-              <button className="absolute right-0 top-0 w-9 h-9 flex items-center justify-center rounded-full bg-white/5 text-white/60">
+              <button className="absolute right-0 top-0 w-9 h-9 flex items-center justify-center rounded-full bg-white/5 text-white/60 hover:text-sky-400">
                 <Sparkles className="w-5 h-5" />
               </button>
 
@@ -250,7 +285,6 @@ export default function AuthPage() {
               </motion.div>
             </div>
 
-            {/* --- SIGN IN VIEW --- */}
             {view === 'signin' && (
               <div className="flex flex-col w-full">
                 <div className="text-center mb-4">
@@ -303,6 +337,8 @@ export default function AuthPage() {
                     {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Sign In <ArrowLeft className="w-4 h-4 rotate-180" /></>}
                   </button>
                 </form>
+
+                <SocialButtons />
                 
                 <p className="text-center text-zinc-400 text-xs mt-6">
                   New to ConvertHub? <button onClick={() => paginate(1, 'signup')} className="text-white font-semibold hover:text-[#D4F82E] transition-colors ml-2">Create Account</button>
@@ -310,17 +346,16 @@ export default function AuthPage() {
               </div>
             )}
 
-            {/* --- FORGOT PASSWORD VIEW (Step 1: Email) --- */}
             {view === 'forgot' && (
               <div className="flex flex-col w-full">
-                <div className="text-center mb-8 mt-2">
+                <div className="text-center mb-6 mt-2">
                   <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">Forgot Password?</h2>
-                  <p className="text-zinc-400 text-xs px-2 leading-relaxed">Enter your email and we'll send an OTP to reset your password instantly.</p>
+                  <p className="text-zinc-400 text-xs px-2 leading-relaxed ">Enter your email and we&apos;ll send an OTP to reset your password instantly.</p>
                 </div>
 
                 <form className="space-y-6" onSubmit={handleForgotPassword}>
                   <div className="space-y-1.5">
-                    <label className="text-zinc-400 text-xs font-medium pl-1">Email address</label>
+                    <label className="text-zinc-300 text-xs font-bold pl-2">Email address</label>
                     <input 
                       type="email" required
                       value={formData.email}
@@ -330,14 +365,13 @@ export default function AuthPage() {
                     />
                   </div>
 
-                  <button disabled={isLoading} className="w-full bg-[#D4F82E] hover:bg-[#c4e62a] text-black font-bold text-sm py-3.5 rounded-xl transition-all flex items-center justify-center gap-2">
+                  <button disabled={isLoading} className="w-full bg-[#D4F82E] hover:bg-[#ee8012] text-black font-bold text-sm py-3.5 rounded-xl transition-all flex items-center justify-center gap-2">
                     {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Send OTP Code <Sparkles className="w-4 h-4" /></>}
                   </button>
                 </form>
               </div>
             )}
 
-            {/* --- OTP VIEW (Step 2: Verification) --- */}
             {view === 'otp' && (
               <div className="flex flex-col w-full">
                 <div className="text-center mb-8 mt-2">
@@ -357,14 +391,13 @@ export default function AuthPage() {
                     />
                   </div>
 
-                  <button disabled={isLoading} className="w-full bg-[#D4F82E] hover:bg-[#c4e62a] text-black font-bold text-sm py-3.5 rounded-xl transition-all flex items-center justify-center gap-2">
+                  <button disabled={isLoading} className="w-full bg-[#D4F82E] hover:bg-[#55ef08] text-black font-bold text-sm py-3.5 rounded-xl transition-all flex items-center justify-center gap-2">
                     {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Verify Code"}
                   </button>
                 </form>
               </div>
             )}
 
-            {/* --- RESET PASSWORD VIEW (Step 3: New Password) --- */}
             {view === 'reset' && (
               <div className="flex flex-col w-full">
                 <div className="text-center mb-8 mt-2">
@@ -391,7 +424,6 @@ export default function AuthPage() {
               </div>
             )}
 
-            {/* --- SIGN UP VIEW --- */}
             {view === 'signup' && (
               <div className="flex flex-col w-full">
                 <div className="text-center mb-6">
@@ -408,6 +440,9 @@ export default function AuthPage() {
                     {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Create Account <Sparkles className="w-4 h-4" /></>}
                   </button>
                 </form>
+
+                <SocialButtons />
+
                 <p className="text-center text-zinc-400 text-xs mt-6">Already have an account? <button onClick={() => paginate(-1, 'signin')} className="text-white font-semibold ml-1">Sign In</button></p>
               </div>
             )}
