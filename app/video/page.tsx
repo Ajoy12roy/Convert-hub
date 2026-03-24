@@ -1,49 +1,276 @@
 "use client";
 
-import React from 'react';
-import { Upload, FileVideo } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { FFmpeg } from '@ffmpeg/ffmpeg';
+import { fetchFile, toBlobURL } from '@ffmpeg/util';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { Upload, FileVideo, Loader2, Download, RefreshCcw, Play, Scissors, Music } from 'lucide-react';
+import toast, { Toaster } from 'react-hot-toast';
 
-export default function VideoConverterSection() {
+// --- কাস্টম টাইপরাইটার অ্যানিমেশন কম্পোনেন্ট ---
+const TypewriterText = ({ text, delay = 0, speed = 50, cursor = true }: { text: string, delay?: number, speed?: number, cursor?: boolean }) => {
+  const [displayText, setDisplayText] = useState('');
+  
+  useEffect(() => {
+    let i = 0;
+    let timer: NodeJS.Timeout;
+
+    const startTyping = () => {
+      timer = setInterval(() => {
+        if (i < text.length) {
+          setDisplayText((prev) => prev + text.charAt(i));
+          i++;
+        } else {
+          clearInterval(timer);
+        }
+      }, speed);
+    };
+
+    const initialDelay = setTimeout(startTyping, delay);
+
+    return () => {
+      clearTimeout(initialDelay);
+      clearInterval(timer);
+    };
+  }, [text, delay, speed]);
+
   return (
-    <div className="min-h-[calc(100vh-80px)] bg-[#f8f9fc] flex justify-center pt-12 px-4 pb-20 font-sans">
-      <div className="w-full max-w-225 bg-white rounded-4xl p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] h-fit">
-        
-        <h1 className="text-[28px] font-bold text-[#111827] mb-8">Main Video Converter</h1>
+    <span>
+      {displayText}
+      {cursor && <span className="animate-pulse text-purple-400 font-light ml-1">|</span>}
+    </span>
+  );
+};
+// ----------------------------------------------
 
-        {/* Upload Dropzone */}
-        <div className="w-full border-[1.5px] border-dashed border-gray-300 rounded-4xl pt-16 pb-12 px-8 flex flex-col items-center justify-center relative bg-gray-50/30 transition-all hover:bg-gray-50/80 group">
+export default function VideoConverterPage() {
+  const [file, setFile] = useState<File | null>(null);
+  const [targetFormat, setTargetFormat] = useState('MP3');
+  const [isConverting, setIsConverting] = useState(false);
+  const [downloadUrl, setDownloadUrl] = useState('');
+  const [previewUrl, setPreviewUrl] = useState('');
+  const [loaded, setLoaded] = useState(false);
+  const [mounted, setMounted] = useState(false); // পুরো পেজ লোড অ্যানিমেশনের জন্য
+  
+  const ffmpegRef = useRef(new FFmpeg());
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const formats = [
+    { name: 'MP3', color: 'bg-purple-500', hover: 'hover:bg-purple-600', shadow: 'shadow-purple-200' },
+    { name: 'MP4', color: 'bg-blue-500', hover: 'hover:bg-blue-600', shadow: 'shadow-blue-200' },
+    { name: 'WAV', color: 'bg-pink-500', hover: 'hover:bg-pink-600', shadow: 'shadow-pink-200' },
+    { name: 'MKV', color: 'bg-indigo-500', hover: 'hover:bg-indigo-600', shadow: 'shadow-indigo-200' },
+    { name: 'AVI', color: 'bg-cyan-500', hover: 'hover:bg-cyan-600', shadow: 'shadow-cyan-200' },
+    { name: 'MOV', color: 'bg-rose-500', hover: 'hover:bg-rose-600', shadow: 'shadow-rose-200' },
+    { name: 'WEBM', color:'bg-orange-500', hover: 'hover:bg-orange-600', shadow: 'shadow-orange-200' }
+  ];
+
+  const activeFormat = formats.find(f => f.name === targetFormat) || formats[0];
+
+  const load = async () => {
+    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
+    const ffmpeg = ffmpegRef.current;
+    await ffmpeg.load({
+      coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+      wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+    });
+    setLoaded(true);
+  };
+
+  useEffect(() => { 
+    load(); 
+    setMounted(true); // পেজ লোড হওয়ার সাথে সাথে অ্যানিমেশন ট্রিগার করবে
+  }, []);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      setPreviewUrl(URL.createObjectURL(selectedFile));
+      setDownloadUrl('');
+    }
+  };
+
+  const startConversion = async () => {
+    if (!file || !loaded) return;
+    setIsConverting(true);
+    try {
+      const ffmpeg = ffmpegRef.current;
+      const inputName = 'input_file';
+      const outputName = `output.${targetFormat.toLowerCase()}`;
+      await ffmpeg.writeFile(inputName, await fetchFile(file));
+
+      const args = targetFormat === 'MP3' 
+        ? ['-i', inputName, '-vn', '-ab', '192k', outputName]
+        : ['-i', inputName, outputName];
+
+      await ffmpeg.exec(args);
+      const data = await ffmpeg.readFile(outputName);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const url = URL.createObjectURL(new Blob([(data as any).buffer]));
+      setDownloadUrl(url);
+      toast.success("Conversion Complete!");
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (err) {
+      toast.error("Conversion failed!");
+    } finally {
+      setIsConverting(false);
+    }
+  };
+
+  // --- আপডেট করা ডাউনলোড লজিক (Save As Dialog) ---
+  const handleDownload = async () => {
+    const defaultFileName = `C&D_converted_${file?.name.split('.')[0] || 'media'}.${targetFormat.toLowerCase()}`;
+    const mimeType = ['MP3', 'WAV'].includes(targetFormat) ? 'audio' : 'video';
+    const extension = `.${targetFormat.toLowerCase()}`;
+
+    try {
+      // চেক করা হচ্ছে ব্রাউজারে File System Access API সাপোর্ট করে কি না
+      if ('showSaveFilePicker' in window) {
+        const handle = await (window as any).showSaveFilePicker({
+          suggestedName: defaultFileName,
+          types: [{
+            description: `${targetFormat} File`,
+            accept: { [`${mimeType}/${targetFormat.toLowerCase()}`]: [extension] },
+          }],
+        });
+        
+        const writable = await handle.createWritable();
+        const response = await fetch(downloadUrl);
+        const blob = await response.blob();
+        await writable.write(blob);
+        await writable.close();
+        
+        toast.success("File saved successfully!");
+      } else {
+        // ফলব্যাক: যদি ব্রাউজারে API সাপোর্ট না থাকে (যেমন Firefox/Safari)
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = defaultFileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+    } catch (err: any) {
+      if (err.name !== 'AbortError') {
+        console.error("Save failed:", err);
+        toast.error("Failed to save the file.");
+      }
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#F8FAFC] p-4 md:p-10 flex items-center justify-center font-sans overflow-hidden">
+      <Toaster />
+      
+      {/* মেইন গ্লাস-মরফিজম কার্ড */}
+      <div className={`w-full max-w-6xl bg-white/70 backdrop-blur-xl border border-white/40 rounded-[3rem] p-6 md:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.05)] transition-all duration-1000 transform ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
+        
+        {/* অ্যানিমেটেড হেডিং সেকশন */}
+        <div className="text-center mb-12 h-24">
+          <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight italic">
+            <TypewriterText text="Format Conversion" speed={80} cursor={false} />
+          </h1>
+          <p className="text-slate-500 mt-2 font-medium text-lg">
+            <TypewriterText text="Fast, Secure & Local Processing" delay={1500} speed={40} />
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           
-          {/* Gradient Icon Box */}
-          <div className="w-22 h-22 rounded-3xl bg-linear-to-br from-[#5b4fe8] to-[#ab4cfa] flex items-center justify-center shadow-[0_10px_25px_rgba(139,92,246,0.3)] mb-6 transition-transform group-hover:scale-105">
-            <FileVideo className="w-10 h-10 text-white" strokeWidth={1.5} />
+          {/* বাম পাশ: ভিডিও প্রিভিউ */}
+          <div className="relative group">
+            <div className={`absolute -inset-1 ${activeFormat.color} rounded-[2.5rem] blur opacity-40 transition-all duration-500`}></div>
+            <div className="relative aspect-video bg-slate-900 rounded-4xl overflow-hidden shadow-2xl flex items-center justify-center border border-white/20">
+              {previewUrl ? (
+                <video src={previewUrl} controls className="w-full h-full object-cover" />
+              ) : (
+                <div 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="text-center cursor-pointer p-10 group"
+                >
+                  <div className="w-20 h-20 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <Play className="text-white fill-white ml-1" size={32} />
+                  </div>
+                  <p className="text-white/60 font-bold text-lg">Select Video to Preview</p>
+                </div>
+              )}
+            </div>
+            <input type="file" ref={fileInputRef} onChange={handleFileChange} hidden accept="video/*" />
           </div>
 
-          {/* Title & Subtitle */}
-          <h2 className="text-[32px] font-extrabold text-[#0f172a] mb-3 tracking-tight">Upload Your Video</h2>
-          
-          <p className="text-gray-500 text-[15px] text-center max-w-100 mb-8 leading-relaxed">
-            Drag & drop or click to browse. Supports MP4, WebM, MOV, AVI, MKV, MP3, WAV
-          </p>
+          {/* ডান পাশ: কনভার্সন কন্ট্রোল */}
+          <div className="space-y-8">
+            <div>
+              <label className="text-slate-400 text-sm font-bold uppercase tracking-widest ml-1">Select Output Format</label>
+              <div className="flex flex-wrap gap-3 mt-4">
+                {formats.map((fmt) => (
+                  <button
+                    key={fmt.name}
+                    onClick={() => setTargetFormat(fmt.name)}
+                    className={`px-6 py-3 rounded-2xl font-bold text-sm transition-all duration-300 transform ${
+                      targetFormat === fmt.name 
+                      ? `${fmt.color} text-white scale-110 shadow-lg ${fmt.shadow} ring-4 ring-white` 
+                      : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                    }`}
+                  >
+                    {fmt.name}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-          {/* Action Button */}
-          <button className="bg-linear-to-r from-[#5b4fe8] to-[#ab4cfa] hover:opacity-95 transition-all active:scale-[0.98] text-white px-7 py-3.5 rounded-xl font-semibold text-[15px] flex items-center gap-2.5 shadow-md">
-            <Upload className="w-4.5 h-4.5" strokeWidth={2.5} />
-            Choose File
-          </button>
+            <div className="pt-4">
+              {!downloadUrl ? (
+                <button
+                  onClick={startConversion}
+                  disabled={isConverting || !file || !loaded}
+                  className={`group relative w-full md:w-auto overflow-hidden text-white px-12 py-5 rounded-2xl font-black text-xl flex items-center justify-center gap-4 shadow-2xl transition-all duration-500 disabled:opacity-90 
+                    ${activeFormat.color} ${activeFormat.hover} ${activeFormat.shadow}`}
+                >
+                  {isConverting ? (
+                    <Loader2 className="animate-spin" />
+                  ) : (
+                    <RefreshCcw className="group-hover:rotate-180 transition-transform duration-700 ease-in-out" />
+                  )}
+                  {isConverting ? "Processing..." : `Convert to ${targetFormat}`}
+                </button>
+              ) : (
+                <div className="flex flex-col sm:flex-row gap-4">
+                  {/* আপডেট করা ডাউনলোড বাটন */}
+                  <button
+                    onClick={handleDownload}
+                    className="flex-1 px-10 py-5 bg-emerald-500 text-white rounded-2xl font-black text-xl flex items-center justify-center gap-3 shadow-xl hover:bg-emerald-600 transition-all hover:-translate-y-1"
+                  >
+                    <Download className="animate-bounce" /> Save As...
+                  </button>
+                  <button 
+                    onClick={() => {setFile(null); setDownloadUrl(''); setPreviewUrl('');}}
+                    className="group px-6 py-5 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all"
+                  >
+                    <RefreshCcw className="group-hover:-rotate-180 transition-transform duration-500" />
+                  </button>
+                </div>
+              )}
+            </div>
 
-          {/* Supported Formats Tags */}
-          <div className="flex flex-wrap gap-2.5 justify-center mt-12">
-            {['MP4', 'WebM', 'MOV', 'AVI', 'MKV', 'MP3', 'WAV'].map((format) => (
-              <span 
-                key={format} 
-                className="px-4 py-1.5 bg-white border border-gray-200 rounded-full text-[13px] font-semibold text-gray-500 shadow-sm hover:border-purple-200 transition-colors"
-              >
-                {format}
-              </span>
-            ))}
+            {!loaded && (
+              <div className="flex items-center gap-3 text-slate-600 font-bold text-sm bg-slate-50 p-4 rounded-xl border border-slate-100 animate-pulse transition-opacity duration-1000">
+                <Loader2 size={20} className="animate-spin" />
+                Initializing Local Engine...
+              </div>
+            )}
           </div>
 
         </div>
+
+        {/* নিচের সাপোর্ট ট্যাগস */}
+        <div className="mt-16 pt-8 border-t border-slate-100 flex flex-wrap justify-center gap-8 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
+           <div className="flex items-center gap-2 font-bold hover:text-purple-600 transition-colors cursor-default"><Scissors size={20}/> Video Trim</div>
+           <div className="flex items-center gap-2 font-bold hover:text-pink-600 transition-colors cursor-default"><Music size={20}/> Audio Extract</div>
+           <div className="flex items-center gap-2 font-bold hover:text-blue-600 transition-colors cursor-default"><FileVideo size={20}/> Fast Encode</div>
+        </div>
+
       </div>
     </div>
   );

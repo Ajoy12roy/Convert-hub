@@ -9,9 +9,13 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.2",
     "bcryptjs": "^3.0.3",
     "browser-image-compression": "^2.0.2",
+    "cloudconvert": "^3.0.0",
     "cloudinary": "^2.9.0",
+    "convertapi": "^1.15.0",
     "framer-motion": "^12.38.0",
     "lucide-react": "^0.577.0",
     "mongoose": "^9.3.1",

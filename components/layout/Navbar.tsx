@@ -40,11 +40,11 @@ export default function Navbar() {
             <Link href="/video" className={`text-sm font-semibold transition-colors ${
                 isActive('/video') ? 'text-orange-500' : 'text-gray-600 hover:text-gray-900'
               }`}>Video</Link>
-            <Link href="/tools" className={`text-sm font-semibold transition-colors ${
-                isActive('/tools') ? 'text-orange-500' : 'text-gray-600 hover:text-gray-900'
+            <Link href="/document" className={`text-sm font-semibold transition-colors ${
+                isActive('/document') ? 'text-orange-500' : 'text-gray-600 hover:text-gray-900'
               }`}>Document</Link>
-            <Link href="/tools" className={`text-sm font-semibold transition-colors ${
-                isActive('/tools') ? 'text-orange-500' : 'text-gray-600 hover:text-gray-900'
+            <Link href="/code-converter" className={`text-sm font-semibold transition-colors ${
+                isActive('/code-converter') ? 'text-orange-500' : 'text-gray-600 hover:text-gray-900'
               }`}>Code</Link>
             <Link href="/tools" className={`text-sm font-semibold transition-colors ${
                 isActive('/tools') ? 'text-orange-500' : 'text-gray-600 hover:text-gray-900'
