@@ -46,8 +46,8 @@ export default function Navbar() {
             <Link href="/code-converter" className={`text-sm font-semibold transition-colors ${
                 isActive('/code-converter') ? 'text-orange-500' : 'text-gray-600 hover:text-gray-900'
               }`}>Code</Link>
-            <Link href="/tools" className={`text-sm font-semibold transition-colors ${
-                isActive('/tools') ? 'text-orange-500' : 'text-gray-600 hover:text-gray-900'
+            <Link href="/video-downloader" className={`text-sm font-semibold transition-colors ${
+                isActive('/video-downloader') ? 'text-orange-500' : 'text-gray-600 hover:text-gray-900'
               }`}>Download</Link>
             
           </div>
