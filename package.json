@@ -13,8 +13,10 @@
     "@ffmpeg/ffmpeg": "^0.12.15",
     "@ffmpeg/util": "^0.12.2",
     "@google/genai": "^1.46.0",
+    "axios": "^1.13.6",
     "bcryptjs": "^3.0.3",
     "browser-image-compression": "^2.0.2",
+    "cheerio": "^1.2.0",
     "cloudconvert": "^3.0.0",
     "cloudinary": "^2.9.0",
     "convertapi": "^1.15.0",
@@ -26,6 +28,7 @@
     "next": "16.1.7",
     "next-auth": "^4.24.13",
     "nodemailer": "^7.0.13",
+    "qs": "^6.15.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-hot-toast": "^2.6.0"

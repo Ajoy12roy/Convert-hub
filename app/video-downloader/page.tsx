@@ -51,33 +51,36 @@ export default function VideoDownloaderPage() {
   useEffect(() => { setMounted(true); }, []);
 
   const activePlatform = platforms.find(p => p.name === selectedPlatform) || platforms[0];
-const handleDownload = async () => {
+
+  const handleDownload = async () => {
     if (!videoUrl.trim()) return toast.error("Please paste a video link!");
     
     setIsDownloading(true);
-    const loadingToast = toast.loading(`Fetching video data...`);
+    const loadingToast = toast.loading(`Fetching video from ${selectedPlatform}...`);
 
     try {
-      // আপনার লোকাল এপিআই রুট কল করুন
       const response = await fetch("/api/download", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: videoUrl }),
+        body: JSON.stringify({ 
+            url: videoUrl,
+            platform: selectedPlatform.toLowerCase() // প্ল্যাটফর্ম ব্যাকএন্ডে পাঠানো হচ্ছে
+        }),
       });
 
       const result = await response.json();
 
       if (result.status === "success" && result.url) {
-        // নতুন ট্যাবে ডাউনলোড ওপেন করা
         window.open(result.url, "_blank");
-        toast.success("Download link generated!", { id: loadingToast });
+        toast.success("Download link generated successfully!", { id: loadingToast });
       } else {
-        throw new Error(result.text || "Failed to fetch video.");
+        // ব্যাকএন্ড থেকে আসা নির্দিষ্ট এরর মেসেজ দেখানো
+        throw new Error(result.text || "Failed to fetch video. Check link privacy.");
       }
 
     } catch (error: any) {
       console.error("Frontend Error:", error);
-      toast.error(error.message || "Connection failed. Check your internet.", { id: loadingToast });
+      toast.error(error.message || "Connection failed. Please try again.", { id: loadingToast });
     } finally {
       setIsDownloading(false);
     }
