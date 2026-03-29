@@ -12,7 +12,8 @@ import {
   CheckCircle2, 
   Globe, 
   Music2,
-  RefreshCcw
+  RefreshCcw,
+  AlertCircle
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 
@@ -47,42 +48,67 @@ export default function VideoDownloaderPage() {
   const [selectedPlatform, setSelectedPlatform] = useState('YouTube');
   const [isDownloading, setIsDownloading] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => { setMounted(true); }, []);
 
   const activePlatform = platforms.find(p => p.name === selectedPlatform) || platforms[0];
 
   const handleDownload = async () => {
-    if (!videoUrl.trim()) return toast.error("Please paste a video link!");
+    if (!videoUrl.trim()) {
+      toast.error("Please paste a video link!");
+      return;
+    }
     
     setIsDownloading(true);
-    const loadingToast = toast.loading(`Fetching video from ${selectedPlatform}...`);
+    const loadingToast = toast.loading(`Fetching ${selectedPlatform} video...`);
 
     try {
       const response = await fetch("/api/download", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
-            url: videoUrl,
-            platform: selectedPlatform.toLowerCase() // প্ল্যাটফর্ম ব্যাকএন্ডে পাঠানো হচ্ছে
+          url: videoUrl,
+          platform: selectedPlatform.toLowerCase()
         }),
       });
 
       const result = await response.json();
 
       if (result.status === "success" && result.url) {
+        // Open download in new tab
         window.open(result.url, "_blank");
-        toast.success("Download link generated successfully!", { id: loadingToast });
+        toast.success("✓ Download started! Check your downloads folder.", { id: loadingToast });
+        setRetryCount(0);
+        setVideoUrl(''); // Clear input after successful download
       } else {
-        // ব্যাকএন্ড থেকে আসা নির্দিষ্ট এরর মেসেজ দেখানো
-        throw new Error(result.text || "Failed to fetch video. Check link privacy.");
+        throw new Error(result.text || "Failed to fetch video. Try again or check if the URL is valid.");
       }
 
     } catch (error: any) {
-      console.error("Frontend Error:", error);
-      toast.error(error.message || "Connection failed. Please try again.", { id: loadingToast });
+      console.error("Download Error:", error);
+      
+      // Show different error messages based on the error
+      let errorMsg = error.message || "Connection failed. Please try again.";
+      
+      if (errorMsg.includes("Server error")) {
+        errorMsg = "Server temporarily unavailable. Please wait a moment and try again.";
+      } else if (errorMsg.includes("video not found")) {
+        errorMsg = "Video not found. Check if the URL is correct and the video is public.";
+      } else if (errorMsg.includes("private")) {
+        errorMsg = "This video is private. Make sure it's public before downloading.";
+      }
+
+      toast.error(errorMsg, { id: loadingToast });
+      setRetryCount(prev => prev + 1);
     } finally {
       setIsDownloading(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !isDownloading && videoUrl.trim()) {
+      handleDownload();
     }
   };
 
@@ -102,7 +128,7 @@ export default function VideoDownloaderPage() {
             <TypewriterText text="Video Downloader" speed={100} />
           </h1>
           <p className="text-slate-500 mt-3 font-medium text-lg">
-            Download videos directly from your favorite social platforms.
+            Download videos from YouTube, Instagram, TikTok, Facebook & more
           </p>
         </div>
 
@@ -110,7 +136,7 @@ export default function VideoDownloaderPage() {
           
           <div className="mb-12">
             <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-3 justify-center">
-              <span className="flex items-center justify-center w-8 h-8 bg-slate-900 text-white rounded-full text-sm">1</span>
+              <span className="flex items-center justify-center w-8 h-8 bg-slate-900 text-white rounded-full text-sm font-bold">1</span>
               Choose Platform
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
@@ -140,7 +166,7 @@ export default function VideoDownloaderPage() {
 
           <div className="mb-10">
             <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-3 justify-center">
-              <span className="flex items-center justify-center w-8 h-8 bg-slate-900 text-white rounded-full text-sm">2</span>
+              <span className="flex items-center justify-center w-8 h-8 bg-slate-900 text-white rounded-full text-sm font-bold">2</span>
               Paste Video Link
             </h2>
             <div className="relative group">
@@ -151,13 +177,15 @@ export default function VideoDownloaderPage() {
                 type="text"
                 value={videoUrl}
                 onChange={(e) => setVideoUrl(e.target.value)}
-                placeholder={`Paste your ${selectedPlatform} link here...`}
+                onKeyPress={handleKeyPress}
+                placeholder={`Paste your ${selectedPlatform} link here... (Press Enter or click Download)`}
                 className="w-full pl-16 pr-6 py-6 bg-slate-50 border-2 border-slate-100 rounded-3xl outline-none focus:border-purple-400 focus:bg-white transition-all text-slate-700 font-medium shadow-inner"
               />
               {videoUrl && (
                 <button 
                   onClick={() => setVideoUrl('')}
                   className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-500 transition-colors"
+                  type="button"
                 >
                   <RefreshCcw size={18} />
                 </button>
@@ -165,7 +193,7 @@ export default function VideoDownloaderPage() {
             </div>
           </div>
 
-          <div className="flex justify-center">
+          <div className="flex justify-center mb-6">
             <button 
               onClick={handleDownload}
               disabled={isDownloading || !videoUrl}
@@ -182,6 +210,22 @@ export default function VideoDownloaderPage() {
               </span>
             </button>
           </div>
+
+          {/* Error Tips */}
+          {retryCount > 0 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4 flex gap-3">
+              <AlertCircle className="text-amber-600 flex-shrink-0" size={20} />
+              <div className="text-sm text-amber-700">
+                <p className="font-semibold">Troubleshooting Tips:</p>
+                <ul className="mt-2 space-y-1 text-xs">
+                  <li>✓ Ensure the video is PUBLIC (not private/restricted)</li>
+                  <li>✓ Try a different video from the same platform</li>
+                  <li>✓ Check your internet connection</li>
+                  <li>✓ Copy the full video URL (including https://)</li>
+                </ul>
+              </div>
+            </div>
+          )}
 
           <div className={`absolute -bottom-10 -right-10 w-40 h-40 rounded-full opacity-5 blur-3xl ${activePlatform.color}`} />
         </div>
