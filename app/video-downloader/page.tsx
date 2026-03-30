@@ -75,28 +75,27 @@ export default function VideoDownloaderPage() {
 
       const result = await response.json();
 
-      if (result.status === "success" && result.url) {
-        // Open download in new tab
+      // ✅ FIXED LOGIC (more reliable)
+      if (response.ok && result.url) {
         window.open(result.url, "_blank");
         toast.success("✓ Download started! Check your downloads folder.", { id: loadingToast });
         setRetryCount(0);
-        setVideoUrl(''); // Clear input after successful download
+        setVideoUrl('');
       } else {
-        throw new Error(result.text || "Failed to fetch video. Try again or check if the URL is valid.");
+        throw new Error(result.text || "Failed to fetch video.");
       }
 
     } catch (error: any) {
       console.error("Download Error:", error);
       
-      // Show different error messages based on the error
       let errorMsg = error.message || "Connection failed. Please try again.";
       
       if (errorMsg.includes("Server error")) {
-        errorMsg = "Server temporarily unavailable. Please wait a moment and try again.";
-      } else if (errorMsg.includes("video not found")) {
-        errorMsg = "Video not found. Check if the URL is correct and the video is public.";
+        errorMsg = "Server temporarily unavailable. Please wait and try again.";
+      } else if (errorMsg.includes("not found")) {
+        errorMsg = "Video not found. Check the URL.";
       } else if (errorMsg.includes("private")) {
-        errorMsg = "This video is private. Make sure it's public before downloading.";
+        errorMsg = "This video is private.";
       }
 
       toast.error(errorMsg, { id: loadingToast });
@@ -211,17 +210,16 @@ export default function VideoDownloaderPage() {
             </button>
           </div>
 
-          {/* Error Tips */}
           {retryCount > 0 && (
             <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4 flex gap-3">
               <AlertCircle className="text-amber-600 flex-shrink-0" size={20} />
               <div className="text-sm text-amber-700">
                 <p className="font-semibold">Troubleshooting Tips:</p>
                 <ul className="mt-2 space-y-1 text-xs">
-                  <li>✓ Ensure the video is PUBLIC (not private/restricted)</li>
-                  <li>✓ Try a different video from the same platform</li>
-                  <li>✓ Check your internet connection</li>
-                  <li>✓ Copy the full video URL (including https://)</li>
+                  <li>✓ Ensure the video is PUBLIC</li>
+                  <li>✓ Try another video</li>
+                  <li>✓ Check internet</li>
+                  <li>✓ Paste full URL</li>
                 </ul>
               </div>
             </div>
