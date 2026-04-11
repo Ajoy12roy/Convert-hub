@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // app/api/download/route.ts
 import { NextResponse } from 'next/server';
 import { exec } from 'child_process';
@@ -6,7 +5,7 @@ import path from 'path';
 import fs from 'fs';
 
 // আপনার FFmpeg পাথ (অবশ্যই সঠিক হতে হবে, না হলে অডিও আসবে না)
-const FFMPEG_PATH = "C:\\ffmpeg\\bin\\ffmpeg.exe"; 
+const FFMPEG_PATH = "C:\\ffmpeg\\bin\\ffmpeg.exe";
 
 export async function POST(req: Request) {
   try {
@@ -26,7 +25,7 @@ export async function POST(req: Request) {
 
     const fileName = `CD_File_${Date.now()}`;
     const outputPath = path.join(downloadDir, `${fileName}.%(ext)s`);
-    const ytDlpPath = `C:\\tools\\yt-dlp.exe`; 
+    const ytDlpPath = `C:\\tools\\yt-dlp.exe`;
 
     let command = "";
 
@@ -36,7 +35,7 @@ export async function POST(req: Request) {
       // ✅ FIX: -f অপশন আপডেট করা হয়েছে যাতে ব্রাউজার সাপোর্টেড mp4 তৈরি হয়
       // এটি প্রথমে সেরা ভিডিও (1080p বা 720p) এবং সেরা অডিও (m4a) খুঁজবে, তারপর তাদের মার্জ করবে
       const videoFilter = quality === '1080p' ? 'bestvideo[ext=mp4][height<=1080]+bestaudio[ext=m4a]/best[ext=mp4]/best' : 'bestvideo[ext=mp4][height<=720]+bestaudio[ext=m4a]/best[ext=mp4]/best';
-      
+
       command = `"${ytDlpPath}" -f "${videoFilter}" --merge-output-format mp4 --ffmpeg-location "${FFMPEG_PATH}" -o "${outputPath}" "${url}"`;
     }
 
@@ -76,33 +75,4 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
-=======
-// New reliable video download implementation using multiple fallback services and better error handling
-
-import { NextResponse } from 'next/server';
-
-export async function GET(request: Request) {
-    const url = new URL(request.url);
-    const videoUrl = url.searchParams.get('url');
-
-    if (!videoUrl) {
-        return NextResponse.json({ error: 'Missing video URL.' }, { status: 400 });
-    }
-
-    try {
-        const response = await fetch(videoUrl);
-
-        if (!response.ok) {
-            throw new Error(`Fetch failed with status ${response.status}`);
-        }
-
-        const videoBlob = await response.blob();
-        return new Response(videoBlob, {
-            headers: { 'Content-Type': 'video/mp4' },
-        });
-    } catch (error) {
-        console.error('Download error:', error);
-        return NextResponse.json({ error: 'Video download failed. Fallback to alternative services.' }, { status: 500 });
-    }
->>>>>>> b1bb44b9df6f7d0abf1ca95b90be436ff057267a
 }

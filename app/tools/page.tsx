@@ -39,7 +39,7 @@ const TypewriterText = ({ text, speed = 80 }: { text: string; speed?: number }) 
   return (
     <span className="relative">
       {displayText}
-      <span className={`${showCursor ? 'opacity-100' : 'opacity-0'} inline-block w-[4px] h-[0.9em] bg-purple-600 ml-1 align-middle transition-opacity duration-100`} />
+      <span className={`${showCursor ? 'opacity-100' : 'opacity-0'} inline-block w-1 h-[0.9em] bg-purple-600 ml-1 align-middle transition-opacity duration-100`} />
     </span>
   );
 };
@@ -94,11 +94,11 @@ export default function ToolsPage() {
     <div className="min-h-screen bg-slate-50 text-slate-900 pb-20 overflow-hidden relative">
       
       {/* Background ambient glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-purple-200/40 blur-[120px] rounded-full pointer-events-none"></div>
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-200 h-125 bg-purple-200/40 blur-[120px] rounded-full pointer-events-none"></div>
 
       {/* Header Section */}
       <div className="pt-20 pb-12 px-4 text-center animate-fade-in-down relative z-10">
-        <h1 className="text-5xl font-extrabold text-slate-900 mb-4 tracking-tight min-h-[60px]">
+        <h1 className="text-5xl font-extrabold text-slate-900 mb-4 tracking-tight min-h-15">
           <TypewriterText text="All Conversion Tools" />
         </h1>
         <p className="text-slate-500 text-lg mb-10">
@@ -125,7 +125,7 @@ export default function ToolsPage() {
             <div key={index} className="perspective-container">
               {/* ✅ RGB Glass Card */}
               <div 
-                className={`rgb-glass-card group relative overflow-hidden p-8 rounded-[2rem] cursor-pointer 
+                className={`rgb-glass-card group relative overflow-hidden p-8 rounded-4xl cursor-pointer 
                   ${index % 2 === 0 ? 'hover-flip-right' : 'hover-flip-left'}
                 `}
                 style={{ animationDelay: `${index * 150}ms` }}
