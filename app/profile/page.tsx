@@ -19,8 +19,8 @@ import {
 } from 'lucide-react';
 
 import { useAuthStore } from '@/store/useAuthStore'; 
+import { useRouter } from 'next/navigation'; // ✅ যুক্ত করা হয়েছে: useRouter হুক
 
-// ✅ Typewriter Effect Custom Hook
 // ✅ Typewriter Effect Hook (Fix for first letter issue)
 const useTypewriter = (text: string, speed: number = 60) => {
   const [displayedText, setDisplayedText] = useState('');
@@ -48,7 +48,13 @@ const useTypewriter = (text: string, speed: number = 60) => {
 };
 
 export default function ProfilePage() {
-  const { user, updateProfileImage, removeProfileImage, logout } = useAuthStore();
+  const { user, updateProfileImage, removeProfileImage, logout, history, addToHistory } = useAuthStore();
+  const router = useRouter(); // ✅ যুক্ত করা হয়েছে: রাউটার ইনিশিয়ালাইজেশন
+
+  useEffect(() => {
+  // পেজ ওপেন হলেই হিস্ট্রিতে ডাটা চলে যাবে
+  addToHistory("Profile Page", "Viewed Profile Settings");
+}, []); 
 
   // ✅ Premium Eligibility Logic
   const [daysStayed] = useState(0); 
@@ -94,10 +100,11 @@ export default function ProfilePage() {
     setIsEditing(false);
   };
 
+  // ✅ যুক্ত করা হয়েছে: প্রতিটি টুলের জন্য নির্দিষ্ট 'path'
   const quickTools = [
-    { title: "Image Converter", desc: "Convert images to different formats", icon: <ImageIcon className="w-6 h-6 text-emerald-600" /> },
-    { title: "Resize & Optimize", desc: "Adjust dimensions and quality", icon: <Settings className="w-6 h-6 text-teal-600" /> },
-    { title: "Batch Processing", desc: "Convert multiple files at once", icon: <Activity className="w-6 h-6 text-green-600" /> }
+    { title: "Image Converter", desc: "Convert images to different formats", icon: <ImageIcon className="w-6 h-6 text-emerald-600" />, path: "/image" },
+    { title: "Resize & Optimize", desc: "Adjust dimensions and quality", icon: <Settings className="w-6 h-6 text-teal-600" />, path: "/video" },
+    { title: "Batch Processing", desc: "Convert multiple files at once", icon: <Activity className="w-6 h-6 text-green-600" />, path: "/document" }
   ];
 
   const recentConversions = [
@@ -178,7 +185,6 @@ export default function ProfilePage() {
             <h2 className="text-2xl font-bold text-slate-800 mb-8 border-b border-white/50 pb-4 tracking-tight">Personal Information</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-4">
               
-              {/* ✅ Blinking (Pulse) effect removed from span borders */}
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Full Name</label>
                 <div className="w-full px-6 py-4 bg-white/40 backdrop-blur-md border border-white/70 rounded-2xl text-slate-800 font-bold shadow-sm flex items-center">
@@ -206,7 +212,6 @@ export default function ProfilePage() {
                 </div>
               </div>
               
-              {/* ✅ Account Status & Note Logic */}
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Account Status</label>
                 <button 
@@ -221,7 +226,6 @@ export default function ProfilePage() {
                   }`}></div>
                 </button>
 
-                {/* ✅ Orange/Green Static Note (Moving Animation Removed) */}
                 {showNote && (
                   <div className="mt-3 p-4 rounded-2xl bg-white/60 backdrop-blur-md border border-white/80 shadow-sm animate-in slide-in-from-top-2 fade-in duration-300">
                     <p className={`text-[10px] font-bold tracking-widest uppercase leading-relaxed text-center ${isEligible ? 'text-emerald-600' : 'text-orange-500'}`}>
@@ -240,7 +244,11 @@ export default function ProfilePage() {
           <h2 className="text-2xl font-bold text-slate-800 mb-6 px-2 tracking-tight">Quick Tools</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {quickTools.map((tool, index) => (
-              <div key={index} className="bg-white/30 backdrop-blur-2xl border border-white/60 shadow-sm hover:shadow-xl rounded-[2rem] p-8 cursor-pointer transition-all duration-300 hover:-translate-y-2 group">
+              <div 
+                key={index} 
+                onClick={() => router.push(tool.path)} // ✅ যুক্ত করা হয়েছে: ক্লিক করলে নির্দিষ্ট লিংকে যাবে
+                className="bg-white/30 backdrop-blur-2xl border border-white/60 shadow-sm hover:shadow-xl rounded-[2rem] p-8 cursor-pointer transition-all duration-300 hover:-translate-y-2 group"
+              >
                 <div className="w-14 h-14 bg-white/70 rounded-2xl flex items-center justify-center mb-5 shadow-sm border border-white group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
                   {tool.icon}
                 </div>

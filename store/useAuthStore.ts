@@ -1,26 +1,38 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+interface HistoryItem {
+  id: string;
+  pageName: string;
+  conversionType: string;
+  timestamp: string;
+}
+
 interface AuthState {
   isLoggedIn: boolean;
   user: {
     fullName: string;
     profileImage: string | null;
   };
+  history: HistoryItem[]; // Stores the recent activity
   setLogin: (status: boolean) => void;
   updateProfileImage: (image: string | null) => void;
-  removeProfileImage: () => void; // ✅ নতুন: ছবি ডিলিট করার ফাংশন
+  removeProfileImage: () => void;
+  addToHistory: (pageName: string, conversionType: string) => void;
+  clearHistory: () => void;
   logout: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
-      isLoggedIn: false, // শুরুতে লগআউট থাকবে
+      isLoggedIn: false,
       user: {
         fullName: "Alex Morrison",
         profileImage: null,
       },
+      history: [],
+
       setLogin: (status) => set({ isLoggedIn: status }),
       
       updateProfileImage: (image) => 
@@ -28,17 +40,31 @@ export const useAuthStore = create<AuthState>()(
           user: { ...state.user, profileImage: image } 
         })),
         
-      // ✅ নতুন ফাংশন: এটি কল করলে শুধু ছবি ডিলিট হবে
       removeProfileImage: () => 
         set((state) => ({
           user: { ...state.user, profileImage: null }
         })),
 
-      // ✅ আপডেট: লগআউট করলে এখন আর ডাটা বা ছবি মুছবে না, শুধু লগআউট হবে
+      // Function to add a new history entry
+      addToHistory: (pageName, conversionType) => 
+        set((state) => ({
+          history: [
+            {
+              id: Math.random().toString(36).substr(2, 9),
+              pageName,
+              conversionType,
+              timestamp: new Date().toLocaleString(),
+            },
+            ...state.history.slice(0, 9) // Keep only the last 10 items
+          ]
+        })),
+
+      clearHistory: () => set({ history: [] }),
+
       logout: () => set({ isLoggedIn: false }), 
     }),
     {
-      name: 'auth-storage',
+      name: 'auth-storage', // saves to localStorage
     }
   )
 );
