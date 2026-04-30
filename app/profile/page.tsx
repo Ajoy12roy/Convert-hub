@@ -19,9 +19,9 @@ import {
 } from 'lucide-react';
 
 import { useAuthStore } from '@/store/useAuthStore'; 
-import { useRouter } from 'next/navigation'; // ✅ যুক্ত করা হয়েছে: useRouter হুক
+import { useRouter } from 'next/navigation'; 
 
-// ✅ Typewriter Effect Hook (Fix for first letter issue)
+// ✅ Typewriter Effect Hook
 const useTypewriter = (text: string, speed: number = 60) => {
   const [displayedText, setDisplayedText] = useState('');
 
@@ -29,10 +29,9 @@ const useTypewriter = (text: string, speed: number = 60) => {
     if (!text) return;
     
     let i = 0;
-    setDisplayedText(''); // টেক্সট রিসেট করা
+    setDisplayedText(''); 
 
     const timer = setInterval(() => {
-      // slice(0, i + 1) ব্যবহার করায় প্রথম অক্ষর থেকে শুরু হবে
       setDisplayedText(text.slice(0, i + 1));
       i++;
       
@@ -48,19 +47,20 @@ const useTypewriter = (text: string, speed: number = 60) => {
 };
 
 export default function ProfilePage() {
-  const { user, updateProfileImage, removeProfileImage, logout, history, addToHistory } = useAuthStore();
-  const router = useRouter(); // ✅ যুক্ত করা হয়েছে: রাউটার ইনিশিয়ালাইজেশন
+  const { user, updateProfileImage, removeProfileImage, logout, history } = useAuthStore();
+  const router = useRouter(); 
 
+  // ❌ আগের useEffect টি কমেন্ট করা হলো কারণ এটি পেজ ভিউ করলেই হিস্ট্রি বানাচ্ছিল। 
+  // কনভার্ট হিস্ট্রি কাজ করানোর জন্য অন্য পেজ থেকে addToHistory কল করতে হবে।
+  /*
   useEffect(() => {
-  // পেজ ওপেন হলেই হিস্ট্রিতে ডাটা চলে যাবে
-  addToHistory("Profile Page", "Viewed Profile Settings");
-}, []); 
+    addToHistory("Profile Page", "Viewed Profile Settings");
+  }, []); 
+  */
 
-  // ✅ Premium Eligibility Logic
   const [daysStayed] = useState(0); 
   const isEligible = daysStayed >= 60;
   
-  // ✅ Note Toggle State
   const [showNote, setShowNote] = useState(false);
 
   const [profileData, setProfileData] = useState({
@@ -70,7 +70,6 @@ export default function ProfilePage() {
     role: isEligible ? 'Premium User' : 'Non-Premium User'
   });
 
-  // ✅ Apply Typewriter Effect
   const typedFullName = useTypewriter(profileData.fullName, 80);
   const typedEmail = useTypewriter(profileData.email, 60);
   const typedUsername = useTypewriter(profileData.username, 80);
@@ -100,17 +99,10 @@ export default function ProfilePage() {
     setIsEditing(false);
   };
 
-  // ✅ যুক্ত করা হয়েছে: প্রতিটি টুলের জন্য নির্দিষ্ট 'path'
   const quickTools = [
     { title: "Image Converter", desc: "Convert images to different formats", icon: <ImageIcon className="w-6 h-6 text-emerald-600" />, path: "/image" },
     { title: "Resize & Optimize", desc: "Adjust dimensions and quality", icon: <Settings className="w-6 h-6 text-teal-600" />, path: "/video" },
     { title: "Batch Processing", desc: "Convert multiple files at once", icon: <Activity className="w-6 h-6 text-green-600" />, path: "/document" }
-  ];
-
-  const recentConversions = [
-    { name: "photo_001.jpg", conversion: "JPG → PNG", time: "2 hours ago", icon: <FileImage className="w-5 h-5 text-emerald-500" /> },
-    { name: "document.pdf", conversion: "PDF → JPG", time: "1 day ago", icon: <FileText className="w-5 h-5 text-teal-500" /> },
-    { name: "design_final.png", conversion: "PNG → WEBP", time: "3 days ago", icon: <FileImage className="w-5 h-5 text-green-500" /> }
   ];
 
   return (
@@ -246,8 +238,8 @@ export default function ProfilePage() {
             {quickTools.map((tool, index) => (
               <div 
                 key={index} 
-                onClick={() => router.push(tool.path)} // ✅ যুক্ত করা হয়েছে: ক্লিক করলে নির্দিষ্ট লিংকে যাবে
-                className="bg-white/30 backdrop-blur-2xl border border-white/60 shadow-sm hover:shadow-xl rounded-[2rem] p-8 cursor-pointer transition-all duration-300 hover:-translate-y-2 group"
+                onClick={() => router.push(tool.path)} 
+                className="bg-white/30 backdrop-blur-2xl border border-white/60 shadow-sm hover:shadow-xl rounded-4xl p-8 cursor-pointer transition-all duration-300 hover:-translate-y-2 group"
               >
                 <div className="w-14 h-14 bg-white/70 rounded-2xl flex items-center justify-center mb-5 shadow-sm border border-white group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
                   {tool.icon}
@@ -259,24 +251,35 @@ export default function ProfilePage() {
           </div>
         </div>
 
+        {/* ✅ Conversion History Section */}
         <div>
           <div className="flex items-center gap-3 mb-6 px-2">
             <Clock className="w-6 h-6 text-slate-400" />
             <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Conversion History</h2>
           </div>
-          <div className="bg-white/30 backdrop-blur-2xl border border-white/60 shadow-sm rounded-4xl overflow-hidden">
-            {recentConversions.map((item, index) => (
-              <div key={index} className={`flex items-center justify-between p-6 md:px-8 hover:bg-white/50 transition-colors cursor-pointer group ${index !== recentConversions.length - 1 ? 'border-b border-white/40' : ''}`}>
-                <div className="flex items-center gap-5">
-                  <div className="w-12 h-12 bg-white/70 rounded-xl flex items-center justify-center shadow-sm border border-white group-hover:scale-110 transition-transform">{item.icon}</div>
-                  <div>
-                    <h4 className="text-lg text-slate-800 font-bold">{item.name}</h4>
-                    <p className="text-sm text-slate-500 font-medium">{item.conversion}</p>
+          <div className="grid grid-cols-1 gap-4">
+            {history.length > 0 ? (
+              history.map((item) => (
+                <div key={item.id} className="flex items-center justify-between p-5 bg-white/40 border border-white/60 rounded-2xl transition-all hover:bg-white/60">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-sm">
+                      <Clock className="w-5 h-5 text-slate-400" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-800">{item.pageName}</p>
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{item.conversionType}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xs font-bold text-slate-400">{item.timestamp}</span>
                   </div>
                 </div>
-                <div className="text-[10px] font-black text-slate-400 bg-white/40 px-4 py-2 rounded-full uppercase tracking-tighter">{item.time}</div>
+              ))
+            ) : (
+              <div className="text-center py-10 bg-white/20 rounded-2xl border-2 border-dashed border-white/40">
+                <p className="text-slate-400 font-bold">No history found yet. Try converting a file!</p>
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>

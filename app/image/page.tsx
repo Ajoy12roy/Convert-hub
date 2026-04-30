@@ -4,6 +4,7 @@ import React, { useState, useRef } from 'react';
 import { Download, Loader2, Image as ImageLucide, X, UploadCloud, ArrowRight } from 'lucide-react';
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuthStore } from '@/store/useAuthStore';
 
 export default function ImageToolsPage() {
   // --- Background Remover States ---
@@ -24,7 +25,8 @@ export default function ImageToolsPage() {
   const [convFileName, setConvFileName] = useState("converthub-converted");
   const converterFileInputRef = useRef<HTMLInputElement>(null);
 
-  const formats = ['JPG', 'PNG', 'WEBP', 'GIF', 'BMP', 'SVG', 'ICO', 'TIFF'];
+const formats = ['JPG', 'PNG', 'WEBP', 'GIF', 'BMP', 'SVG', 'ICO', 'TIFF'];
+  const { addToHistory } = useAuthStore();
 
   // === Logic Functions ===
   const resizeImage = (file: File): Promise<Blob> => {
@@ -65,7 +67,10 @@ export default function ImageToolsPage() {
       formData.append('image', compressedBlob, 'image.jpg');
       const response = await fetch('/api/remove-bg', { method: 'POST', body: formData });
       const data = await response.json();
-      if (response.ok && data.url) setProcessedImage(data.url);
+if (response.ok && data.url) {
+        setProcessedImage(data.url);
+        addToHistory("Image Tool", "Background Removal");
+      }
       else alert(data.error || "প্রসেসিং ব্যর্থ হয়েছে।");
     } catch {
       alert("সার্ভার কানেকশন এরর।");
@@ -108,9 +113,10 @@ export default function ImageToolsPage() {
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
         ctx.drawImage(img, 0, 0);
-        const dataUrl = canvas.toDataURL(`image/${selectedFormat.toLowerCase()}`);
+const dataUrl = canvas.toDataURL(`image/${selectedFormat.toLowerCase()}`);
         setConverterProcessedUrl(dataUrl);
         setConverterIsProcessing(false);
+        addToHistory("Image Tool", `Convert to ${selectedFormat}`);
       };
     };
   };

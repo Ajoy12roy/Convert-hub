@@ -6,6 +6,7 @@ import { fetchFile, toBlobURL } from '@ffmpeg/util';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Upload, FileVideo, Loader2, Download, RefreshCcw, Play, Scissors, Music } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
+import { useAuthStore } from '@/store/useAuthStore';
 
 // --- কাস্টম টাইপরাইটার অ্যানিমেশন কম্পোনেন্ট ---
 const TypewriterText = ({ text, delay = 0, speed = 50, cursor = true }: { text: string, delay?: number, speed?: number, cursor?: boolean }) => {
@@ -52,8 +53,9 @@ export default function VideoConverterPage() {
   const [loaded, setLoaded] = useState(false);
   const [mounted, setMounted] = useState(false); // পুরো পেজ লোড অ্যানিমেশনের জন্য
   
-  const ffmpegRef = useRef(new FFmpeg());
+const ffmpegRef = useRef(new FFmpeg());
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { addToHistory } = useAuthStore();
 
   const formats = [
     { name: 'MP3', color: 'bg-purple-500', hover: 'hover:bg-purple-600', shadow: 'shadow-purple-200' },
@@ -108,7 +110,8 @@ export default function VideoConverterPage() {
       const data = await ffmpeg.readFile(outputName);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const url = URL.createObjectURL(new Blob([(data as any).buffer]));
-      setDownloadUrl(url);
+setDownloadUrl(url);
+      addToHistory("Video Tool", `Convert to ${targetFormat}`);
       toast.success("Conversion Complete!");
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {

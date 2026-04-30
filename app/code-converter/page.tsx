@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Code2, ChevronRight, Copy, Check, Download, Loader2, RefreshCcw, Terminal, Upload } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
+import { useAuthStore } from '@/store/useAuthStore';
 
 // টাইপরাইটার অ্যানিমেশন কম্পোনেন্ট
 const TypewriterText = ({
@@ -77,7 +78,8 @@ export default function CodeConverterPage() {
   const [isConverting, setIsConverting] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+const fileInputRef = useRef<HTMLInputElement>(null);
+  const { addToHistory } = useAuthStore();
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -133,6 +135,7 @@ export default function CodeConverterPage() {
       // আউটপুট সেট করা
       if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
         setOutputCode(data.candidates[0].content.parts[0].text.replace(/```[\w]*\n/g, '').replace(/```/g, ''));
+addToHistory("Code Converter", `Converted to ${targetLang}`);
         toast.success("Converted!");
       }
     } catch (err) {

@@ -17,6 +17,7 @@ import {
   RefreshCcw
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
+import { useAuthStore } from '@/store/useAuthStore';
 
 
 const TypewriterText = ({ text, speed = 100 }: { text: string; speed?: number }) => {
@@ -67,7 +68,8 @@ export default function VideoDownloaderPage() {
   const [format, setFormat] = useState("video"); 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [downloadProgress, setDownloadProgress] = useState(0);
-  const [finalDownloadUrl, setFinalDownloadUrl] = useState<string | null>(null);
+const [finalDownloadUrl, setFinalDownloadUrl] = useState<string | null>(null);
+  const { addToHistory } = useAuthStore();
   
   const audioRef = useRef<HTMLAudioElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -136,9 +138,10 @@ export default function VideoDownloaderPage() {
 
       const result = await response.json();
 
-      if (response.ok && result.url) {
+if (response.ok && result.url) {
         toast.success("✓ Conversion successful!", { id: loadingToast });
-        setFinalDownloadUrl(result.url); 
+        setFinalDownloadUrl(result.url);
+        addToHistory("Video Downloader", `${selectedPlatform} ${format === 'audio' ? 'MP3' : quality}`); 
       } else {
         throw new Error(result.text || "Failed to fetch file.");
       }
@@ -229,7 +232,7 @@ export default function VideoDownloaderPage() {
                 ) : (
                     <div className="text-center text-white/30">
                         <PlayCircle size={60} className="mx-auto mb-2 animate-pulse" />
-                        <p className="text-xs font-bold uppercase tracking-widest animate-pulse">Awaiting File</p>
+<p className="text-xs font-bold uppercase tracking-widest animate-pulse">Awaiting File</p>
                     </div>
                 )}
              </div>

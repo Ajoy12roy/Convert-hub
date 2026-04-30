@@ -47,17 +47,29 @@ export const useAuthStore = create<AuthState>()(
 
       // Function to add a new history entry
       addToHistory: (pageName, conversionType) => 
-        set((state) => ({
-          history: [
-            {
-              id: Math.random().toString(36).substr(2, 9),
-              pageName,
-              conversionType,
-              timestamp: new Date().toLocaleString(),
-            },
-            ...state.history.slice(0, 9) // Keep only the last 10 items
-          ]
-        })),
+        set((state) => {
+          // সুন্দর করে ডেট এবং টাইম ফরম্যাট করার জন্য
+          const formattedTime = new Date().toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+          });
+
+          return {
+            history: [
+              {
+                id: Math.random().toString(36).substring(2, 11), // substr এর বদলে substring ব্যবহার করা হয়েছে
+                pageName,
+                conversionType,
+                timestamp: formattedTime,
+              },
+              ...state.history.slice(0, 9) // Keep only the last 10 items
+            ]
+          };
+        }),
 
       clearHistory: () => set({ history: [] }),
 

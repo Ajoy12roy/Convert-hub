@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, Download, RefreshCcw, Loader2, FileType, Layers, FileSearch, FileCode, BookOpen } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
+import { useAuthStore } from '@/store/useAuthStore';
 
 // টাইপরাইটার কম্পোনেন্ট (অপরিবর্তিত)
 const TypewriterText = ({ text, delay = 0, speed = 50, cursor = true }: { text: string, delay?: number, speed?: number, cursor?: boolean }) => {
@@ -33,7 +34,8 @@ export default function DocumentToolsPage() {
   const [targetFormat, setTargetFormat] = useState('DOCX');
   const [isConverting, setIsConverting] = useState(false);
   const [downloadUrl, setDownloadUrl] = useState<string>(''); 
-  const [mounted, setMounted] = useState(false);
+const [mounted, setMounted] = useState(false);
+  const { addToHistory } = useAuthStore();
 
   const formats = [
     { name: 'DOCX', color: 'bg-blue-600', hover: 'hover:bg-blue-700', shadow: 'shadow-blue-200' },
@@ -71,13 +73,15 @@ export default function DocumentToolsPage() {
       }
       
       // ব্যাকএন্ড থেকে আসা url অথবা FileData (Base64) চেক করা হচ্ছে
-      if (data.url) {
+if (data.url) {
         setDownloadUrl(data.url);
+        addToHistory("Document Tool", `Convert to ${targetFormat}`);
         toast.success("Conversion Complete!");
       } else if (data.FileData) {
         // যদি ডাটা Base64 হিসেবে আসে, তবে সেটিকে Data URL বানিয়ে সেট করা হচ্ছে
         const base64DataUrl = `data:application/octet-stream;base64,${data.FileData}`;
         setDownloadUrl(base64DataUrl);
+        addToHistory("Document Tool", `Convert to ${targetFormat}`);
         toast.success("Conversion Complete!");
       } else {
         throw new Error("No download data received from server");
