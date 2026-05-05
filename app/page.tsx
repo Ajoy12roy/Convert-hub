@@ -147,10 +147,12 @@ export default function Home() {
         <div className="max-w-6xl mx-auto bg-linear-to-r from-blue-500 via-indigo-500 to-purple-600 rounded-[3rem] p-12 md:p-20 text-center text-white shadow-2xl shadow-indigo-200">
           <h2 className="text-4xl md:text-5xl font-extrabold mb-6">Ready to Convert Your Files?</h2>
           <p className="text-white/80 text-lg mb-10 max-w-2xl mx-auto">Join thousands of users who trust ConvertHub for their file conversion needs</p>
-          <button className="bg-white text-indigo-600 px-10 py-4 rounded-full text-lg font-bold hover:bg-gray-50 transition-all flex items-center mx-auto space-x-2 group">
-            <span>Get Started Now</span>
-            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-          </button>
+          <Link href="/auth">
+            <button className="bg-white text-indigo-600 px-10 py-4 rounded-full text-lg font-bold hover:bg-gray-50 transition-all flex items-center mx-auto space-x-2 group">
+              <span>Get Started Now</span>
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </button>
+          </Link>
         </div>
       </section>
 
