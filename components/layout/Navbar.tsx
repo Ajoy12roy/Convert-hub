@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Upload } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore'; // ✅ গ্লোবাল স্টোর ইমপোর্ট করা আছে
+import { ThemeToggle } from '@/components/ThemeToggle'; // ✅ ThemeToggle ইমপোর্ট করা হলো
+
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -14,14 +16,16 @@ export default function Navbar() {
   const { isLoggedIn, user, setLogin } = useAuthStore();
 
   return (
-    <nav className="w-full border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-0 z-50">
+    // ✅ ডার্ক মোডের জন্য dark:bg-slate-950/80 এবং dark:border-slate-800 যোগ করা হয়েছে
+    <nav className="w-full border-b border-gray-100 dark:border-slate-800 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md sticky top-0 z-50 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           
           {/* Logo Area - ✅ RGB Moving Border Added Here */}
           <Link href="/" className="shrink-0 flex items-center cursor-pointer group">
             <div className="rgb-logo-wrapper shadow-sm hover:shadow-md transition-shadow">
-              <div className="inner-logo-box bg-gray-50 flex items-center justify-center">
+              {/* ✅ ডার্ক মোডের জন্য inner-logo-box এ dark:bg-slate-900 যোগ করা হয়েছে */}
+              <div className="inner-logo-box bg-gray-50 dark:bg-slate-900 flex items-center justify-center transition-colors duration-300">
                 <span className="font-bold text-xl tracking-tight z-10">
                   <span className="text-blue-500">C</span>
                   <span className="text-gray-400">&</span>
@@ -38,25 +42,25 @@ export default function Navbar() {
             {isLoggedIn && (
               <>
                 <Link href="/" className={`text-sm font-semibold transition-colors ${
-                    isActive('/') ? 'text-orange-500' : 'text-gray-600 hover:text-gray-900'
+                    isActive('/') ? 'text-orange-500' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
                   }`}>Home</Link>
                 <Link href="/tools" className={`text-sm font-semibold transition-colors ${
-                    isActive('/tools') ? 'text-orange-500' : 'text-gray-600 hover:text-gray-900'
+                    isActive('/tools') ? 'text-orange-500' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
                   }`}>Tools</Link>
                 <Link href="/image" className={`text-sm font-semibold transition-colors ${
-                    isActive('/image') ? 'text-orange-500' : 'text-gray-600 hover:text-gray-900'
+                    isActive('/image') ? 'text-orange-500' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
                   }`}>Image</Link>
                 <Link href="/video" className={`text-sm font-semibold transition-colors ${
-                    isActive('/video') ? 'text-orange-500' : 'text-gray-600 hover:text-gray-900'
+                    isActive('/video') ? 'text-orange-500' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
                   }`}>Video</Link>
                 <Link href="/document" className={`text-sm font-semibold transition-colors ${
-                    isActive('/document') ? 'text-orange-500' : 'text-gray-600 hover:text-gray-900'
+                    isActive('/document') ? 'text-orange-500' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
                   }`}>Document</Link>
                 <Link href="/code-converter" className={`text-sm font-semibold transition-colors ${
-                    isActive('/code-converter') ? 'text-orange-500' : 'text-gray-600 hover:text-gray-900'
+                    isActive('/code-converter') ? 'text-orange-500' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
                   }`}>Code</Link>
                 <Link href="/video-downloader" className={`text-sm font-semibold transition-colors ${
-                    isActive('/video-downloader') ? 'text-orange-500' : 'text-gray-600 hover:text-gray-900'
+                    isActive('/video-downloader') ? 'text-orange-500' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
                   }`}>Download</Link>
               </>
             )}
@@ -64,12 +68,16 @@ export default function Navbar() {
           </div>
 
           {/* Right Action Buttons */}
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-4 md:space-x-6">
+            
+            {/* ✅ Theme Toggle Button Added Here */}
+            <ThemeToggle />
+
             {!isLoggedIn ? (
               <>
                 <button 
                   onClick={() => setLogin(true)} 
-                  className="text-gray-600 hover:text-gray-900 font-medium text-sm transition-colors"
+                  className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-medium text-sm transition-colors"
                 >
                   Sign In
                 </button>
@@ -84,7 +92,7 @@ export default function Navbar() {
             ) : (
               /* ✅ Circle Shape Profile Icon */
               <Link href="/profile" className="cursor-pointer group ">
-                <div className="w-11 h-11 rounded-full bg-white shadow-md border border-gray-200 overflow-hidden flex items-center justify-center hover:shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 text-emerald-700 font-extrabold text-lg">
+                <div className="w-11 h-11 rounded-full bg-white dark:bg-slate-800 shadow-md border border-gray-200 dark:border-slate-700 overflow-hidden flex items-center justify-center hover:shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 text-emerald-700 dark:text-emerald-400 font-extrabold text-lg">
                   {user.profileImage ? (
                     <img src={user.profileImage} alt="Profile" className="w-full h-full object-cover" />
                   ) : (
@@ -124,13 +132,12 @@ export default function Navbar() {
           z-index: 0;
         }
 
-        /* লোগোর ভেতরের সাদা বক্স */
+        /* লোগোর ভেতরের বক্স */
         .inner-logo-box {
           position: relative;
           z-index: 1;
           width: 44px; /* Outer border 48px থেকে 4px কম, যেন বর্ডার দেখা যায় */
           height: 44px;
-          background-color: #f9fafb; /* Tailwind bg-gray-50 */
           border-radius: 10px;
           display: flex;
           align-items: center;
