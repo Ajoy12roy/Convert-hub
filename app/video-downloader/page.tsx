@@ -1,4 +1,3 @@
-// app/video-downloader/page.tsx
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -19,7 +18,7 @@ import {
 import toast, { Toaster } from 'react-hot-toast';
 import { useAuthStore } from '@/store/useAuthStore';
 
-
+// টাইপরাইটার অ্যানিমেশন (Updated for Dark Mode)
 const TypewriterText = ({ text, speed = 100 }: { text: string; speed?: number }) => {
   const [displayText, setDisplayText] = useState('');
   const [showCursor, setShowCursor] = useState(true);
@@ -46,17 +45,18 @@ const TypewriterText = ({ text, speed = 100 }: { text: string; speed?: number })
   return (
     <span className="relative">
       {displayText}
-      <span className={`${showCursor ? 'opacity-100' : 'opacity-0'} inline-block w-0.75 h-[0.9em] bg-slate-900 ml-1 align-middle transition-opacity duration-100`} />
+      {/* ডার্ক মোডে কার্সার সাদা হবে */}
+      <span className={`${showCursor ? 'opacity-100' : 'opacity-0'} inline-block w-0.75 h-[0.9em] bg-slate-900 dark:bg-white ml-1 align-middle transition-opacity duration-100`} />
     </span>
   );
 };
 
 const platforms = [
-  { name: 'YouTube', icon: <Youtube size={24} />, color: 'bg-red-500', light: 'bg-red-50', border: 'border-red-400', text: 'text-red-700' },
-  { name: 'Facebook', icon: <Facebook size={24} />, color: 'bg-blue-600', light: 'bg-blue-50', border: 'border-blue-400', text: 'text-blue-700' },
-  { name: 'Instagram', icon: <Instagram size={24} />, color: 'bg-pink-600', light: 'bg-pink-100', border: 'border-pink-400', text: 'text-pink-700' },
-  { name: 'TikTok', icon: <Music2 size={24} />, color: 'bg-lime-600', light: 'bg-lime-100', border: 'border-lime-400', text: 'text-lime-900' },
-  { name: 'Google Drive', icon: <Globe size={24} />, color: 'bg-amber-500', light: 'bg-amber-50', border: 'border-amber-400', text: 'text-amber-700' },
+  { name: 'YouTube', icon: <Youtube size={24} />, color: 'bg-red-500', light: 'bg-red-50 dark:bg-red-950/30', border: 'border-red-400', text: 'text-red-700 dark:text-red-400' },
+  { name: 'Facebook', icon: <Facebook size={24} />, color: 'bg-blue-600', light: 'bg-blue-50 dark:bg-blue-950/30', border: 'border-blue-400', text: 'text-blue-700 dark:text-blue-400' },
+  { name: 'Instagram', icon: <Instagram size={24} />, color: 'bg-pink-600', light: 'bg-pink-100 dark:bg-pink-950/30', border: 'border-pink-400', text: 'text-pink-700 dark:text-pink-400' },
+  { name: 'TikTok', icon: <Music2 size={24} />, color: 'bg-lime-600', light: 'bg-lime-100 dark:bg-lime-950/30', border: 'border-lime-400', text: 'text-lime-900 dark:text-lime-400' },
+  { name: 'Google Drive', icon: <Globe size={24} />, color: 'bg-amber-500', light: 'bg-amber-50 dark:bg-amber-950/30', border: 'border-amber-400', text: 'text-amber-700 dark:text-amber-400' },
 ];
 
 export default function VideoDownloaderPage() {
@@ -68,7 +68,7 @@ export default function VideoDownloaderPage() {
   const [format, setFormat] = useState("video"); 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [downloadProgress, setDownloadProgress] = useState(0);
-const [finalDownloadUrl, setFinalDownloadUrl] = useState<string | null>(null);
+  const [finalDownloadUrl, setFinalDownloadUrl] = useState<string | null>(null);
   const { addToHistory } = useAuthStore();
   
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -138,7 +138,7 @@ const [finalDownloadUrl, setFinalDownloadUrl] = useState<string | null>(null);
 
       const result = await response.json();
 
-if (response.ok && result.url) {
+      if (response.ok && result.url) {
         toast.success("✓ Conversion successful!", { id: loadingToast });
         setFinalDownloadUrl(result.url);
         addToHistory("Video Downloader", `${selectedPlatform} ${format === 'audio' ? 'MP3' : quality}`); 
@@ -155,22 +155,26 @@ if (response.ok && result.url) {
   if (!mounted) return null;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] p-4 md:p-10 flex flex-col items-center font-sans animate-in fade-in duration-700">
+    // ✅ ডার্ক মোড ব্যাকগ্রাউন্ড এবং ট্রানজিশন অ্যাড করা হয়েছে
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 p-4 md:p-10 flex flex-col items-center font-sans animate-in fade-in duration-700 transition-colors">
       <Toaster position="top-right" />
       
       <div className="w-full max-w-4xl">
         <div className="text-center mb-10">
           <div className="flex justify-center mb-4 animate-bounce duration-2000">
-             <div className="bg-purple-100 p-4 rounded-3xl text-purple-600 shadow-sm">
+             {/* ✅ আইকন ব্যাকগ্রাউন্ড আপডেট */}
+             <div className="bg-purple-100 dark:bg-purple-900/30 p-4 rounded-3xl text-purple-600 dark:text-purple-400 shadow-sm">
                <Video size={40} />
              </div>
           </div>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight italic uppercase">
+          {/* ✅ টাইটেল কালার আপডেট */}
+          <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight italic uppercase">
             <TypewriterText text="Video Downloader" />
           </h1>
         </div>
 
-        <div className="bg-white border border-white/40 rounded-[3rem] p-8 md:p-12 shadow-[0_30px_60px_rgba(0,0,0,0.06)] relative overflow-hidden animate-in slide-in-from-bottom-8 duration-1000">
+        {/* ✅ মেইন কার্ড ডার্ক মোড ডিজাইন */}
+        <div className="bg-white dark:bg-slate-900 border border-white/40 dark:border-slate-800 rounded-[3rem] p-8 md:p-12 shadow-[0_30px_60px_rgba(0,0,0,0.06)] dark:shadow-2xl relative overflow-hidden animate-in slide-in-from-bottom-8 duration-1000">
           
           <div className="mb-10">
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
@@ -178,37 +182,55 @@ if (response.ok && result.url) {
                 <button
                   key={platform.name}
                   onClick={() => { setSelectedPlatform(platform.name); setFinalDownloadUrl(null); }}
-                  className={`flex flex-col items-center p-5 rounded-3xl border-2 transition-all duration-300 ${selectedPlatform === platform.name ? `${platform.border} ${platform.light} scale-105 shadow-md` : 'border-transparent bg-slate-50 hover:bg-slate-100'}`}
+                  className={`flex flex-col items-center p-5 rounded-3xl border-2 transition-all duration-300 ${
+                    selectedPlatform === platform.name 
+                    ? `${platform.border} ${platform.light} scale-105 shadow-md` 
+                    : 'border-transparent bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  }`}
                 >
                   <div className={`mb-2 transition-transform duration-300 ${selectedPlatform === platform.name ? `${platform.text} scale-110` : 'text-slate-400'}`}>{platform.icon}</div>
-                  <span className="text-[10px] font-bold uppercase">{platform.name}</span>
+                  <span className="text-[10px] font-bold uppercase dark:text-slate-400">{platform.name}</span>
                 </button>
               ))}
             </div>
           </div>
 
           <div className="mb-8 group">
+            {/* ✅ ইনপুট ফিল্ড ডার্ক মোড */}
             <input 
               type="text"
               value={videoUrl}
               onChange={(e) => setVideoUrl(e.target.value)}
               placeholder="Paste URL here..."
-              className="w-full px-6 py-6 bg-slate-50 border-2 border-slate-100 rounded-3xl outline-none focus:border-purple-400 focus:bg-white text-slate-700 font-medium transition-all duration-300"
+              className="w-full px-6 py-6 bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-3xl outline-none focus:border-purple-400 dark:focus:border-purple-500 focus:bg-white dark:focus:bg-slate-800 text-slate-700 dark:text-slate-200 font-medium transition-all duration-300"
             />
 
-            <div className="flex flex-wrap items-center justify-center gap-4 mt-6 bg-slate-50 p-4 rounded-2xl transition-all shadow-inner">
+            {/* ✅ কোয়ালিটি অপশন কার্ড আপডেট */}
+            <div className="flex flex-wrap items-center justify-center gap-4 mt-6 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl transition-all shadow-inner border border-slate-100 dark:border-slate-700">
                 <button 
                   onClick={() => { setQuality('1080p'); setFormat('video'); setFinalDownloadUrl(null); }} 
-                  className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${quality === '1080p' && format === 'video' ? 'bg-orange-800 text-white shadow-lg scale-105' : 'bg-white border hover:border-slate-300 hover:bg-orange-400'}`}
+                  className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                    quality === '1080p' && format === 'video' 
+                    ? 'bg-orange-800 text-white shadow-lg scale-105' 
+                    : 'bg-white dark:bg-slate-700 border dark:border-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:bg-orange-400'
+                  }`}
                 >1080p (Full HD)</button>
                 <button 
                   onClick={() => { setQuality('720p'); setFormat('video'); setFinalDownloadUrl(null); }} 
-                  className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${quality === '720p' && format === 'video' ? 'bg-purple-800 text-white shadow-lg scale-105' : 'bg-white border hover:border-slate-300 hover:bg-purple-400'}`}
+                  className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                    quality === '720p' && format === 'video' 
+                    ? 'bg-purple-800 text-white shadow-lg scale-105' 
+                    : 'bg-white dark:bg-slate-700 border dark:border-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:bg-purple-400'
+                  }`}
                 >720p (HD)</button>
-                <div className="h-6 w-px bg-slate-200 mx-2"></div>
+                <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-2"></div>
                 <button 
                   onClick={() => { setFormat('audio'); setQuality('best'); setFinalDownloadUrl(null); }} 
-                  className={`flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold transition-all ${format === 'audio' ? 'bg-emerald-500 text-white shadow-lg scale-105' : 'bg-white border hover:border-emerald-200 hover:bg-emerald-200'}`}
+                  className={`flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold transition-all ${
+                    format === 'audio' 
+                    ? 'bg-emerald-500 text-white shadow-lg scale-105' 
+                    : 'bg-white dark:bg-slate-700 border dark:border-slate-600 dark:text-slate-300 hover:border-emerald-200 hover:bg-emerald-200'
+                  }`}
                 >
                   <Music2 size={16} /> MP3 Audio
                 </button>
@@ -217,12 +239,12 @@ if (response.ok && result.url) {
 
          {previewUrl && (
              <div 
-               className="mb-8 w-full max-w-lg mx-auto bg-slate-900 rounded-3xl overflow-hidden aspect-video relative flex items-center justify-center border-4 border-purple-400 transition-all duration-500 hover:scale-[1.02]"
+               className="mb-8 w-full max-w-lg mx-auto bg-slate-900 dark:bg-black rounded-3xl overflow-hidden aspect-video relative flex items-center justify-center border-4 border-purple-400 transition-all duration-500 hover:scale-[1.02]"
                style={{ boxShadow: '0 20px 50px -12px rgba(168, 85, 247, 0.4), inset 0 0 20px rgba(0,0,0,0.5)' }}
              >
                 {finalDownloadUrl ? (
                     format === 'audio' ? (
-                        <div className="w-full h-full flex flex-col items-center justify-center bg-slate-800 p-8 text-white">
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-slate-800 dark:bg-slate-900 p-8 text-white">
                             <Headphones size={48} className="mb-4 text-emerald-400 animate-pulse" />
                             <audio ref={audioRef} controls src={finalDownloadUrl} className="w-full" autoPlay />
                         </div>
@@ -232,7 +254,7 @@ if (response.ok && result.url) {
                 ) : (
                     <div className="text-center text-white/30">
                         <PlayCircle size={60} className="mx-auto mb-2 animate-pulse" />
-<p className="text-xs font-bold uppercase tracking-widest animate-pulse">Awaiting File</p>
+                        <p className="text-xs font-bold uppercase tracking-widest animate-pulse">Awaiting File</p>
                     </div>
                 )}
              </div>
@@ -270,7 +292,7 @@ if (response.ok && result.url) {
           </div>
 
           {downloadProgress > 0 && downloadProgress < 100 && (
-            <div className="mt-6 w-full max-w-xs mx-auto bg-slate-100 h-1.5 rounded-full overflow-hidden">
+            <div className="mt-6 w-full max-w-xs mx-auto bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
                 <div className="bg-emerald-500 h-full transition-all duration-300" style={{width: `${downloadProgress}%`}}></div>
             </div>
           )}

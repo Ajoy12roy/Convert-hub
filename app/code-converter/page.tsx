@@ -26,7 +26,7 @@ const TypewriterText = ({
     const startTyping = () => {
       timer = setInterval(() => {
         if (i <= text.length) {
-          setDisplayText(text.slice(0, i)); // ✅ FIX HERE
+          setDisplayText(text.slice(0, i)); 
           i++;
         } else {
           clearInterval(timer);
@@ -65,7 +65,7 @@ const languages = [
   { name: 'Go', color: 'bg-cyan-500', hover: 'hover:bg-cyan-600', shadow: 'shadow-cyan-200', text: 'text-cyan-500' },
   { name: 'Rust', color: 'bg-orange-600', hover: 'hover:bg-orange-700', shadow: 'shadow-orange-200', text: 'text-orange-600' },
   { name: 'Swift', color: 'bg-rose-500', hover: 'hover:bg-rose-600', shadow: 'shadow-rose-200', text: 'text-orange-500' },
-  { name: 'HTML', color: 'bg-fuchsia-700', hover: 'hover:bg-bg-fuchsia-800', shadow: 'shadow-fuchsia-200', text: 'text-orange-400' },
+  { name: 'HTML', color: 'bg-fuchsia-700', hover: 'hover:bg-fuchsia-800', shadow: 'shadow-fuchsia-200', text: 'text-orange-400' },
   { name: 'CSS', color: 'bg-green-500', hover: 'hover:bg-green-700', shadow: 'shadow-green-200', text: 'text-blue-400' },
   { name: 'SCSS', color: 'bg-pink-500', hover: 'hover:bg-pink-600', shadow: 'shadow-pink-200', text: 'text-pink-500' },
   { name: 'Tailwind CSS', color: 'bg-teal-400', hover: 'hover:bg-teal-500', shadow: 'shadow-teal-200', text: 'text-teal-400' }
@@ -78,7 +78,7 @@ export default function CodeConverterPage() {
   const [isConverting, setIsConverting] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [mounted, setMounted] = useState(false);
-const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { addToHistory } = useAuthStore();
 
   useEffect(() => { setMounted(true); }, []);
@@ -97,15 +97,13 @@ const fileInputRef = useRef<HTMLInputElement>(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
- const handleConvert = async () => {
-    // ... আগের স্টেট চেকগুলো থাকবে
+  const handleConvert = async () => {
     const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+    setIsConverting(true);
     
-    // কনসোলে চেক করুন কি-টি ঠিকমতো পাচ্ছে কিনা (শুধুমাত্র টেস্টের জন্য)
     console.log("Using API Key:", API_KEY?.substring(0, 5) + "...");
 
     try {
-      // এই URL ফরম্যাটটি ব্যবহার করুন
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`,
         {
@@ -126,20 +124,19 @@ const fileInputRef = useRef<HTMLInputElement>(null);
       const data = await response.json();
 
       if (data.error) {
-        // যদি ৪MDG বা অন্য এরর আসে, তবে এখানে মডেল লিস্ট দেখার চেষ্টা করবে
         console.error("Gemini Error Details:", data.error);
         toast.error(`API Error: ${data.error.message}`);
         return;
       }
       
-      // আউটপুট সেট করা
       if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
         setOutputCode(data.candidates[0].content.parts[0].text.replace(/```[\w]*\n/g, '').replace(/```/g, ''));
-addToHistory("Code Converter", `Converted to ${targetLang}`);
+        addToHistory("Code Converter", `Converted to ${targetLang}`);
         toast.success("Converted!");
       }
     } catch (err) {
       console.error("Network Error:", err);
+      toast.error("Failed to connect to AI service.");
     } finally {
       setIsConverting(false);
     }
@@ -152,7 +149,6 @@ addToHistory("Code Converter", `Converted to ${targetLang}`);
     toast.success("Copied to clipboard!");
   };
 
-  // ডাউনলোড ও সেভ অপশন
   const handleDownload = async () => {
     if (!outputCode) return;
 
@@ -199,7 +195,8 @@ addToHistory("Code Converter", `Converted to ${targetLang}`);
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] p-4 md:p-10 flex flex-col items-center font-sans ">
+    // ✅ Main Background Updated for Dark Mode
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 p-4 md:p-10 flex flex-col items-center font-sans transition-colors duration-300">
       <Toaster position="top-right" />
       
       <div className={`w-full max-w-7xl transition-all duration-1000 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
@@ -207,22 +204,24 @@ addToHistory("Code Converter", `Converted to ${targetLang}`);
         {/* Header Section */}
         <div className="text-center mb-24 mt-8 h-32">
           <div className="flex justify-center mb-4">
-             <div className="bg-purple-100 p-4 rounded-3xl text-purple-600 shadow-sm transition-transform hover:scale-110 duration-300">
+             {/* ✅ Icon Background Updated */}
+             <div className="bg-purple-100 dark:bg-purple-900/30 p-4 rounded-3xl text-purple-600 dark:text-purple-400 shadow-sm transition-transform hover:scale-110 duration-300">
                <Code2 size={40} />
              </div>
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight italic uppercase">
+          {/* ✅ Text Colors Updated */}
+          <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight italic uppercase">
             <TypewriterText text="Code Converter" speed={100} cursor={false} />
           </h1>
-          <p className="text-slate-500 mt-3 font-medium text-lg italic">
+          <p className="text-slate-500 dark:text-slate-400 mt-3 font-medium text-lg italic">
             <TypewriterText text="Translate languages, format structures, and optimize logic." delay={1500} speed={40} />
           </p>
         </div>
 
         <div className="flex flex-col lg:flex-row items-center gap-6 mb-12">
-          {/* Input Box */}
-          <div className="w-full flex-1 bg-[#0F172A] rounded-3xl shadow-2xl overflow-hidden border border-slate-800">
-            <div className="flex items-center justify-between px-6 py-4 bg-[#1E293B] border-b border-slate-800">
+          {/* Input Box - Kept Dark intentionally for Code Editor look */}
+          <div className="w-full flex-1 bg-[#0F172A] rounded-3xl shadow-2xl overflow-hidden border border-slate-800 dark:border-slate-700">
+            <div className="flex items-center justify-between px-6 py-4 bg-[#1E293B] border-b border-slate-800 dark:border-slate-700">
               <div className="flex items-center gap-2 text-slate-400 text-sm font-semibold font-mono">
                 <Terminal size={16} /> Input Code
               </div>
@@ -242,9 +241,9 @@ addToHistory("Code Converter", `Converted to ${targetLang}`);
             </div>
           </div>
 
-          {/* Output Box */}
-          <div className="w-full flex-1 bg-[#0F172A] rounded-3xl shadow-2xl overflow-hidden border border-slate-800">
-            <div className="flex items-center justify-between px-6 py-4 bg-[#1E293B] border-b border-slate-800">
+          {/* Output Box - Kept Dark intentionally */}
+          <div className="w-full flex-1 bg-[#0F172A] rounded-3xl shadow-2xl overflow-hidden border border-slate-800 dark:border-slate-700">
+            <div className="flex items-center justify-between px-6 py-4 bg-[#1E293B] border-b border-slate-800 dark:border-slate-700">
               <div className="flex items-center gap-2 text-slate-400 text-sm font-semibold font-mono">
                 <Code2 size={16} /> Output Code
               </div>
@@ -259,11 +258,19 @@ addToHistory("Code Converter", `Converted to ${targetLang}`);
           </div>
         </div>
 
-        {/* Selection & Convert UI */}
-        <div className="bg-white/70 backdrop-blur-2xl border border-white/40 rounded-[3rem] p-10 shadow-[0_30px_60px_rgba(0,0,0,0.08)]">
+        {/* Selection & Convert UI - ✅ Dark Mode Card Added */}
+        <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl border border-white/40 dark:border-slate-800 rounded-[3rem] p-10 shadow-[0_30px_60px_rgba(0,0,0,0.08)] dark:shadow-2xl transition-colors">
           <div className="flex flex-wrap justify-center gap-3 mb-10">
             {languages.map((lang) => (
-              <button key={lang.name} onClick={() => setTargetLang(lang.name)} className={`px-6 py-3 rounded-2xl font-bold text-sm transition-all duration-300 transform ${targetLang === lang.name ? `${lang.color} text-white scale-110 shadow-xl ring-8 ring-white` : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+              <button 
+                key={lang.name} 
+                onClick={() => setTargetLang(lang.name)} 
+                className={`px-6 py-3 rounded-2xl font-bold text-sm transition-all duration-300 transform 
+                  ${targetLang === lang.name 
+                    ? `${lang.color} text-white scale-110 shadow-xl ring-8 ring-white dark:ring-slate-800` 
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  }`}
+              >
                 {lang.name}
               </button>
             ))}
@@ -276,7 +283,7 @@ addToHistory("Code Converter", `Converted to ${targetLang}`);
             </button>
 
             {outputCode && (
-              <button onClick={handleDownload} className="w-full sm:w-auto px-10 py-6 bg-slate-900 text-white rounded-3xl font-black text-2xl flex items-center justify-center gap-3 shadow-2xl hover:bg-black transition-all hover:-translate-y-2">
+              <button onClick={handleDownload} className="w-full sm:w-auto px-10 py-6 bg-slate-900 dark:bg-slate-800 text-white rounded-3xl font-black text-2xl flex items-center justify-center gap-3 shadow-2xl hover:bg-black dark:hover:bg-slate-700 transition-all hover:-translate-y-2">
                 <Download className="animate-bounce" /> Download
               </button>
             )}

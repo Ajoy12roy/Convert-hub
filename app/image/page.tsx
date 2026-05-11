@@ -25,7 +25,7 @@ export default function ImageToolsPage() {
   const [convFileName, setConvFileName] = useState("converthub-converted");
   const converterFileInputRef = useRef<HTMLInputElement>(null);
 
-const formats = ['JPG', 'PNG', 'WEBP', 'GIF', 'BMP', 'SVG', 'ICO', 'TIFF'];
+  const formats = ['JPG', 'PNG', 'WEBP', 'GIF', 'BMP', 'SVG', 'ICO', 'TIFF'];
   const { addToHistory } = useAuthStore();
 
   // === Logic Functions ===
@@ -67,7 +67,7 @@ const formats = ['JPG', 'PNG', 'WEBP', 'GIF', 'BMP', 'SVG', 'ICO', 'TIFF'];
       formData.append('image', compressedBlob, 'image.jpg');
       const response = await fetch('/api/remove-bg', { method: 'POST', body: formData });
       const data = await response.json();
-if (response.ok && data.url) {
+      if (response.ok && data.url) {
         setProcessedImage(data.url);
         addToHistory("Image Tool", "Background Removal");
       }
@@ -113,7 +113,7 @@ if (response.ok && data.url) {
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
         ctx.drawImage(img, 0, 0);
-const dataUrl = canvas.toDataURL(`image/${selectedFormat.toLowerCase()}`);
+        const dataUrl = canvas.toDataURL(`image/${selectedFormat.toLowerCase()}`);
         setConverterProcessedUrl(dataUrl);
         setConverterIsProcessing(false);
         addToHistory("Image Tool", `Convert to ${selectedFormat}`);
@@ -122,7 +122,8 @@ const dataUrl = canvas.toDataURL(`image/${selectedFormat.toLowerCase()}`);
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center py-12 px-4 relative">
+    // ✅ Main Wrapper Dark Mode: dark:bg-slate-950
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center py-12 px-4 relative transition-colors duration-300">
       <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
       <input type="file" ref={converterFileInputRef} onChange={(e) => {
         const file = e.target.files?.[0];
@@ -133,18 +134,19 @@ const dataUrl = canvas.toDataURL(`image/${selectedFormat.toLowerCase()}`);
       }} className="hidden" accept="image/*" />
       
       <AnimatePresence>
-        {/* Modal logic updated to prevent JSX errors */}
+        {/* Background Remover Download Modal */}
         {showBgModal && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="bg-white rounded-3xl p-8 w-full max-w-md">
+            {/* ✅ Modal Dark Mode */}
+            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="bg-white dark:bg-slate-900 rounded-3xl p-8 w-full max-w-md">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold">Save Result As</h3>
-                <button onClick={() => setShowBgModal(false)}><X className="w-6 h-6 text-slate-400" /></button>
+                <h3 className="text-xl font-bold dark:text-white">Save Result As</h3>
+                <button onClick={() => setShowBgModal(false)}><X className="w-6 h-6 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" /></button>
               </div>
-              <input type="text" value={bgFileName} onChange={(e) => setBgFileName(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-slate-200 mb-4" />
+              <input type="text" value={bgFileName} onChange={(e) => setBgFileName(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent dark:text-white mb-4 outline-none focus:border-purple-500" />
               <div className="flex gap-3">
-                <button onClick={() => setShowBgModal(false)} className="flex-1 px-6 py-3 bg-slate-100 rounded-xl font-bold">Cancel</button>
-                <button onClick={confirmBgDownload} className="flex-1 px-6 py-3 bg-purple-600 text-white rounded-xl font-bold">Download</button>
+                <button onClick={() => setShowBgModal(false)} className="flex-1 px-6 py-3 bg-slate-100 dark:bg-slate-800 dark:text-slate-300 rounded-xl font-bold transition-colors">Cancel</button>
+                <button onClick={confirmBgDownload} className="flex-1 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold transition-colors">Download</button>
               </div>
             </motion.div>
           </motion.div>
@@ -152,62 +154,62 @@ const dataUrl = canvas.toDataURL(`image/${selectedFormat.toLowerCase()}`);
       </AnimatePresence>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-4xl text-center mb-6">
-        <h1 className="text-4xl font-extrabold mb-2 text-slate-900"><span className="text-[#E6238F]">Image</span> Tool</h1>
-        <p className="text-xl text-slate-600">Background removal & format conversion — with instant download</p>
+        <h1 className="text-4xl font-extrabold mb-2 text-slate-900 dark:text-white"><span className="text-[#E6238F]">Image</span> Tool</h1>
+        <p className="text-xl text-slate-600 dark:text-slate-400">Background removal & format conversion — with instant download</p>
       </motion.div>
 
       {/* AI Background Remover Section */}
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }} className="bg-white p-8 rounded-3xl shadow-xl w-full max-w-4xl border border-slate-200 mb-6">
-        <h2 className="text-3xl font-bold mb-6 text-center text-slate-800">AI Background Remover</h2>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }} className="bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-xl w-full max-w-4xl border border-slate-200 dark:border-slate-800 mb-6 transition-colors">
+        <h2 className="text-3xl font-bold mb-6 text-center text-slate-800 dark:text-white">AI Background Remover</h2>
         {!originalImage ? (
-          <div onClick={() => fileInputRef.current?.click()} className="border-2 border-dashed border-slate-300 rounded-2xl p-20 text-center cursor-pointer hover:border-purple-500">
+          <div onClick={() => fileInputRef.current?.click()} className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl p-20 text-center cursor-pointer hover:border-purple-500 dark:hover:border-purple-500 transition-colors">
             <ImageLucide className="w-12 h-12 mx-auto text-purple-500 mb-2" />
-             <button className="mt-4 bg-linear-to-r from-pink-500 to-purple-600 text-white px-8 py-3 rounded-full font-bold">Choose Image</button>
+             <button className="mt-4 bg-linear-to-r from-pink-500 to-purple-600 text-white px-8 py-3 rounded-full font-bold shadow-lg hover:shadow-xl transition-all hover:-translate-y-1">Choose Image</button>
           </div>
         ) : (
           <div className="grid md:grid-cols-2 gap-6">
-            <div className="relative aspect-square rounded-xl overflow-hidden border">
+            <div className="relative aspect-square rounded-xl overflow-hidden border dark:border-slate-700">
               <Image src={originalImage} alt="Original" fill className="object-cover" />
             </div>
-            <div className="relative aspect-square rounded-xl bg-slate-100 border overflow-hidden flex items-center justify-center">
+            <div className="relative aspect-square rounded-xl bg-slate-100 dark:bg-slate-800/50 border dark:border-slate-700 overflow-hidden flex items-center justify-center">
               {isProcessing ? <Loader2 className="w-10 h-10 animate-spin text-purple-600" /> : processedImage && <Image src={processedImage} alt="Result" fill className="object-contain" unoptimized />}
             </div>
           </div>
         )}
         {originalImage && (
           <div className="mt-8 flex justify-center gap-4">
-            <button onClick={() => {setOriginalImage(null); setProcessedImage(null);}} className="px-6 py-3 bg-slate-100 rounded-xl font-bold">Reset</button>
-            {processedImage && <button onClick={() => setShowBgModal(true)} className="px-8 py-3 bg-purple-600 text-white rounded-xl font-bold flex items-center gap-2"><Download className="w-5 h-5" /> Download PNG</button>}
+            <button onClick={() => {setOriginalImage(null); setProcessedImage(null);}} className="px-6 py-3 bg-slate-100 dark:bg-slate-800 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl font-bold transition-colors">Reset</button>
+            {processedImage && <button onClick={() => setShowBgModal(true)} className="px-8 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold flex items-center gap-2 transition-colors"><Download className="w-5 h-5" /> Download PNG</button>}
           </div>
         )}
       </motion.div>
 
       {/* Format Conversion Section */}
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }} className="bg-white p-8 rounded-3xl shadow-xl w-full max-w-4xl border border-slate-200">
-        <h2 className="text-3xl font-bold mb-6 text-center text-black">Format Conversion</h2>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }} className="bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-xl w-full max-w-4xl border border-slate-200 dark:border-slate-800 transition-colors">
+        <h2 className="text-3xl font-bold mb-6 text-center text-black dark:text-white">Format Conversion</h2>
         {!converterPreview ? (
-          <div onClick={() => converterFileInputRef.current?.click()} className="border-2 border-dashed border-slate-300 rounded-3xl p-12 text-center cursor-pointer hover:border-purple-500">
+          <div onClick={() => converterFileInputRef.current?.click()} className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-3xl p-12 text-center cursor-pointer hover:border-purple-500 dark:hover:border-purple-500 transition-colors">
             <UploadCloud className="w-12 h-12 mx-auto text-purple-600 mb-4" />
-            <p className="text-xl font-bold">Upload Your Image</p>
-            <button className="mt-4 bg-linear-to-r from-pink-500 to-purple-600 text-white px-8 py-3 rounded-full font-bold">Choose Image</button>
+            <p className="text-xl font-bold dark:text-white">Upload Your Image</p>
+            <button className="mt-4 bg-linear-to-r from-pink-500 to-purple-600 text-white px-8 py-3 rounded-full font-bold shadow-lg hover:shadow-xl transition-all hover:-translate-y-1">Choose Image</button>
           </div>
         ) : (
           <div className="flex flex-col md:flex-row items-center gap-8">
-            <div className="w-48 h-48 relative rounded-2xl overflow-hidden border-4 border-white shadow-md">
+            <div className="w-48 h-48 relative rounded-2xl overflow-hidden border-4 border-white dark:border-slate-800 shadow-md">
               <Image src={converterPreview} alt="To convert" fill className="object-cover" />
             </div>
             <div className="flex-1 text-center">
               <div className="flex flex-wrap justify-center gap-2 mb-6">
                 {formats.map(f => (
-                  <button key={f} onClick={() => setSelectedFormat(f)} className={`px-4 py-2 rounded-xl text-sm font-bold ${selectedFormat === f ? 'bg-purple-600 text-white' : 'bg-slate-100 text-slate-600'}`}>{f}</button>
+                  <button key={f} onClick={() => setSelectedFormat(f)} className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors ${selectedFormat === f ? 'bg-purple-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>{f}</button>
                 ))}
               </div>
               {!converterProcessedUrl ? (
-                <button onClick={handleConvertFormat} disabled={converterIsProcessing} className="bg-linear-to-r from-pink-500 to-purple-600 text-white px-8 py-3 rounded-full font-bold flex items-center gap-2 mx-auto">
+                <button onClick={handleConvertFormat} disabled={converterIsProcessing} className="bg-linear-to-r from-pink-500 to-purple-600 text-white px-8 py-3 rounded-full font-bold flex items-center gap-2 mx-auto shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 disabled:opacity-70 disabled:hover:translate-y-0">
                   {converterIsProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <ArrowRight className="w-5 h-5" />} Convert to {selectedFormat}
                 </button>
               ) : (
-                <button onClick={() => setShowConvModal(true)} className="bg-green-500 text-white px-8 py-3 rounded-full font-bold flex items-center gap-2 mx-auto"><Download className="w-5 h-5" /> Download Result</button>
+                <button onClick={() => setShowConvModal(true)} className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-full font-bold flex items-center gap-2 mx-auto shadow-lg hover:shadow-xl transition-all hover:-translate-y-1"><Download className="w-5 h-5" /> Download Result</button>
               )}
             </div>
           </div>
@@ -218,12 +220,12 @@ const dataUrl = canvas.toDataURL(`image/${selectedFormat.toLowerCase()}`);
       <AnimatePresence>
         {showConvModal && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="bg-white rounded-3xl p-8 w-full max-w-md">
-              <h3 className="text-xl font-bold mb-6">Save {selectedFormat} As</h3>
-              <input type="text" value={convFileName} onChange={(e) => setConvFileName(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-slate-200 mb-4" />
+            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="bg-white dark:bg-slate-900 rounded-3xl p-8 w-full max-w-md">
+              <h3 className="text-xl font-bold mb-6 dark:text-white">Save {selectedFormat} As</h3>
+              <input type="text" value={convFileName} onChange={(e) => setConvFileName(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent dark:text-white mb-4 outline-none focus:border-purple-500" />
               <div className="flex gap-3">
-                <button onClick={() => setShowConvModal(false)} className="flex-1 px-6 py-3 bg-slate-100 rounded-xl font-bold">Cancel</button>
-                <a href={converterProcessedUrl!} download={`${convFileName}.${selectedFormat.toLowerCase()}`} onClick={() => setShowConvModal(false)} className="flex-1 px-6 py-3 bg-pink-600 text-white rounded-xl font-bold text-center">Download</a>
+                <button onClick={() => setShowConvModal(false)} className="flex-1 px-6 py-3 bg-slate-100 dark:bg-slate-800 dark:text-slate-300 rounded-xl font-bold transition-colors">Cancel</button>
+                <a href={converterProcessedUrl!} download={`${convFileName}.${selectedFormat.toLowerCase()}`} onClick={() => setShowConvModal(false)} className="flex-1 px-6 py-3 bg-pink-600 hover:bg-pink-700 text-white rounded-xl font-bold text-center transition-colors">Download</a>
               </div>
             </motion.div>
           </motion.div>
