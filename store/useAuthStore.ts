@@ -71,6 +71,10 @@ export const useAuthStore = create<AuthState>()(
           };
         }),
 
+      removeFromHistory: (id: string) => set((state) => ({ 
+        history: state.history.filter((item: any) => item.id !== id) 
+      })),
+
       clearHistory: () => set({ history: [] }),
 
       logout: () => set({ isLoggedIn: false }), 
