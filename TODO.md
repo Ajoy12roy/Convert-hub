@@ -1,12 +1,15 @@
-# Git Push Task - COMPLETED ✅
+# TODO
 
-## Steps Completed:
-- [x] 1. Created TODO.md with plan
-- [x] 2. Committed: `feat: enhance profile page UI and add history tracking to auth store`
-- [x] 3. Pushed to origin/main successfully
-- [x] 4. Verified: working tree clean (TODO.md unstaged, minor update only)
-- [x] 5. Updated TODO.md ✅
+- [ ] Update `app/api/remove-bg/route.ts`
+  - [ ] Remove `export const config` block
+  - [ ] Accept JSON body `{ url: string }`
+  - [ ] Fetch image bytes from URL
+  - [ ] Keep Cloudinary transformation + upload_stream logic unchanged
 
-**Latest Commit:** 9e37198 feat: enhance profile page UI and add history tracking to auth store  
-**Repo:** https://github.com/Ajoy12roy/Convert-hub/commits/main  
-**Status:** Clean (main up-to-date with origin/main)
+- [ ] Update `app/image/page.tsx`
+  - [ ] Upload selected file directly to Cloudinary from the browser (secure_url result)
+  - [ ] Send `{ url: secure_url }` to `/api/remove-bg` instead of uploading `FormData`
+
+- [ ] Verify build: run `npm run build`
+- [ ] Smoke test: upload a large (20MB) image and confirm background removal works
+
