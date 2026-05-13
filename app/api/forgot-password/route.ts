@@ -1,6 +1,9 @@
-import { connectDB } from "@/lib/mongodb";
+export const dynamic = 'force-dynamic'; // এই লাইনটি যোগ করুন
+
+import { NextResponse } from 'next/server'; 
+ import { connectDB } from "@/lib/mongodb";
 import {User} from "@/models/User";
-import { NextResponse } from "next/server";
+
 import nodemailer from "nodemailer";
 
 export async function POST(req: Request) {
