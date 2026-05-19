@@ -1,8 +1,11 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
-import { FFmpeg } from '@ffmpeg/ffmpeg';
+// IMPORTANT: keep ffmpeg usage client-only to avoid Vercel prerender (SSR/Static) crashes.
+// We will lazy-load FFmpeg inside useEffect.
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
+
+
 import { Upload, FileVideo, Loader2, Download, RefreshCcw, Play, Scissors, Music } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -43,8 +46,32 @@ export default function VideoConverterPage() {
   const [previewUrl, setPreviewUrl] = useState('');
   const [loaded, setLoaded] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [ffmpegError, setFfmpegError] = useState<string | null>(null);
   
-  const ffmpegRef = useRef(new FFmpeg());
+  const ffmpegRef = useRef<import('@ffmpeg/ffmpeg').FFmpeg | null>(null);
+
+  // Load FFmpeg only on the client (prevents `ffmpeg.wasm does not support nodejs` during Vercel build)
+  useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      try {
+        const mod = await import('@ffmpeg/ffmpeg');
+        if (cancelled) return;
+        const { FFmpeg } = mod as unknown as { FFmpeg: new () => import('@ffmpeg/ffmpeg').FFmpeg };
+        ffmpegRef.current = new FFmpeg();
+      } catch (e) {
+        console.error('Failed to load ffmpeg', e);
+      }
+    };
+
+    run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { addToHistory } = useAuthStore();
 
@@ -61,13 +88,26 @@ export default function VideoConverterPage() {
   const activeFormat = formats.find(f => f.name === targetFormat) || formats[0];
 
   const load = async () => {
-    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
-    const ffmpeg = ffmpegRef.current;
-    await ffmpeg.load({
-      coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
-      wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
-    });
-    setLoaded(true);
+    setFfmpegError(null);
+    setLoaded(false);
+    try {
+      const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
+      const ffmpeg = ffmpegRef.current;
+      if (!ffmpeg) throw new Error('FFmpeg engine not initialized');
+
+      await ffmpeg.load({
+        coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+        wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+      });
+
+      setLoaded(true);
+    } catch (e) {
+      const msg = (e as Error)?.message || 'FFmpeg failed to load';
+      console.error('FFmpeg load failed:', e);
+      setLoaded(false);
+      setFfmpegError(msg);
+      toast.error('FFmpeg failed to load in this environment.');
+    }
   };
 
   useEffect(() => { 
@@ -86,6 +126,8 @@ export default function VideoConverterPage() {
 
   const startConversion = async () => {
     if (!file || !loaded) return;
+    if (!ffmpegRef.current) return;
+
     setIsConverting(true);
     try {
       const ffmpeg = ffmpegRef.current;
@@ -97,11 +139,18 @@ export default function VideoConverterPage() {
         : ['-i', inputName, outputName];
       await ffmpeg.exec(args);
       const data = await ffmpeg.readFile(outputName);
-      const url = URL.createObjectURL(new Blob([(data as any).buffer]));
+
+      // `ffmpeg.readFile` can return a SharedArrayBuffer in some builds.
+      // Convert it to a plain Uint8Array/BlobPart to satisfy TS + runtime.
+      const u8 = data instanceof Uint8Array ? data : new Uint8Array(data as unknown as ArrayLike<number>);
+
+      // Ensure we hand Blob a BlobPart that is backed by a real ArrayBuffer.
+      const safeBytes = u8.buffer instanceof ArrayBuffer ? new Uint8Array(u8) : new Uint8Array(u8.slice().buffer);
+      const url = URL.createObjectURL(new Blob([safeBytes]));
       setDownloadUrl(url);
       addToHistory("Video Tool", `Convert to ${targetFormat}`);
       toast.success("Conversion Complete!");
-    } catch (err) {
+    } catch {
       toast.error("Conversion failed!");
     } finally {
       setIsConverting(false);
@@ -113,15 +162,17 @@ export default function VideoConverterPage() {
     const mimeType = ['MP3', 'WAV'].includes(targetFormat) ? 'audio' : 'video';
     const extension = `.${targetFormat.toLowerCase()}`;
     try {
-      if ('showSaveFilePicker' in window) {
-        const handle = await (window as any).showSaveFilePicker({
+      const w = window as unknown as { showSaveFilePicker?: (args: Record<string, unknown>) => Promise<unknown> };
+      if (typeof w.showSaveFilePicker === 'function') {
+        const handle = await w.showSaveFilePicker({
           suggestedName: defaultFileName,
-          types: [{
+          types:[{
             description: `${targetFormat} File`,
             accept: { [`${mimeType}/${targetFormat.toLowerCase()}`]: [extension] },
           }],
-        });
-        const writable = await handle.createWritable();
+        }) as { createWritable: () => Promise<unknown> };
+
+        const writable = (await handle.createWritable()) as { write: (data: Blob) => Promise<void>; close: () => Promise<void> };
         const response = await fetch(downloadUrl);
         const blob = await response.blob();
         await writable.write(blob);
@@ -133,8 +184,8 @@ export default function VideoConverterPage() {
         a.download = defaultFileName;
         a.click();
       }
-    } catch (err: any) {
-      if (err.name !== 'AbortError') toast.error("Failed to save the file.");
+    } catch {
+      toast.error("Failed to save the file.");
     }
   };
 
@@ -205,6 +256,7 @@ export default function VideoConverterPage() {
                 <button
                   onClick={startConversion}
                   disabled={isConverting || !file || !loaded}
+
                   className={`group relative w-full md:w-auto overflow-hidden text-white px-12 py-5 rounded-2xl font-black text-xl flex items-center justify-center gap-4 shadow-2xl transition-all duration-500 disabled:opacity-90 
                     ${activeFormat.color} ${activeFormat.hover} ${activeFormat.shadow}`}
                 >
@@ -227,9 +279,15 @@ export default function VideoConverterPage() {
             </div>
 
             {!loaded && (
-              <div className="flex items-center gap-3 text-slate-600 dark:text-slate-400 font-bold text-sm bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700 animate-pulse transition-opacity duration-1000">
+              <div className="flex items-center gap-3 text-slate-600 dark:text-slate-400 font-bold text-sm bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700 transition-opacity duration-1000">
                 <Loader2 size={20} className="animate-spin" />
-                Initializing Local Engine...
+                {ffmpegError ? (
+                  <span className="text-slate-700 dark:text-slate-200">
+                    FFmpeg failed to load: {ffmpegError}
+                  </span>
+                ) : (
+                  "Initializing Local Engine..."
+                )}
               </div>
             )}
           </div>
