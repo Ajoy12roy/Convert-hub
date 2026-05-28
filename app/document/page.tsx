@@ -78,7 +78,6 @@ export default function DocumentToolsPage() {
         throw new Error("No download data received from server");
       }
     } catch (err: unknown) {
-      // ✅ ESLint Error fixed by using unknown instead of any
       const errorMessage = err instanceof Error ? err.message : "API Error! Please check your credentials.";
       toast.error(errorMessage);
     } finally {
@@ -90,10 +89,9 @@ export default function DocumentToolsPage() {
     if (!downloadUrl) return;
     const defaultName = `C&D_converted_${file?.name.split('.')[0] || 'document'}.${targetFormat.toLowerCase()}`;
     try {
-      // ✅ TS Error fixed using specific types and @ts-ignore for the modern Web API
+      // ✅ এখানে (window as any) ব্যবহার করে Vercel-এর টাইপস্ক্রিপ্ট এরর চিরতরে ফিক্স করা হয়েছে
       if (typeof window !== 'undefined' && 'showSaveFilePicker' in window) {
-        
-        const handle = await window.showSaveFilePicker({
+        const handle = await (window as any).showSaveFilePicker({
           suggestedName: defaultName,
           types: [{ description: `${targetFormat} File`, accept: { '*/*': [`.${targetFormat.toLowerCase()}`] } }],
         });
@@ -115,7 +113,6 @@ export default function DocumentToolsPage() {
         document.body.removeChild(link);
       }
     } catch (err: unknown) {
-       // ✅ ESLint Error fixed here too
       if (err instanceof Error && err.name !== 'AbortError') {
         toast.error("Save failed or cancelled.");
       }
