@@ -44,7 +44,6 @@ const useTypewriter = (text: string, speed: number = 60) => {
 };
 
 export default function ProfilePage() {
-  // ✅ removeFromHistory কল করার জন্য সঠিক মেথড ব্যবহার করা হয়েছে
   const { user, updateProfileImage, removeProfileImage, logout, history, removeFromHistory } = useAuthStore() as any;
   const router = useRouter(); 
 
@@ -96,9 +95,9 @@ export default function ProfilePage() {
   };
 
   const quickTools = [
-    { title: "Image Converter", desc: "Convert images to different formats", icon: <ImageIcon className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />, path: "/image" },
-    { title: "Resize & Optimize", desc: "Adjust dimensions and quality", icon: <Settings className="w-6 h-6 text-teal-600 dark:text-teal-400" />, path: "/video" },
-    { title: "Batch Processing", desc: "Convert multiple files at once", icon: <Activity className="w-6 h-6 text-green-600 dark:text-green-400" />, path: "/document" }
+    { title: "Image Converter", desc: "Convert images to different formats", icon: <ImageIcon className="w-5 h-5 md:w-6 md:h-6 text-emerald-600 dark:text-emerald-400" />, path: "/image" },
+    { title: "Resize & Optimize", desc: "Adjust dimensions and quality", icon: <Settings className="w-5 h-5 md:w-6 md:h-6 text-teal-600 dark:text-teal-400" />, path: "/video" },
+    { title: "Batch Processing", desc: "Convert multiple files at once", icon: <Activity className="w-5 h-5 md:w-6 md:h-6 text-green-600 dark:text-green-400" />, path: "/document" }
   ];
 
   return (
@@ -217,23 +216,25 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Tools Section */}
+        {/* ✅ Updated Quick Tools Section (2 columns on mobile, 3 on desktop) */}
         <div className="mb-14">
           <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-6 px-2 tracking-tight transition-colors">Quick Tools</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-8">
             {quickTools.map((tool, index) => (
-              <div key={index} onClick={() => router.push(tool.path)} className="bg-white/30 dark:bg-slate-900/40 backdrop-blur-2xl border border-white/60 dark:border-slate-800 shadow-sm hover:shadow-xl rounded-4xl p-8 cursor-pointer transition-all duration-300 hover:-translate-y-2 group">
-                <div className="w-14 h-14 bg-white/70 dark:bg-slate-800 rounded-2xl flex items-center justify-center mb-5 shadow-sm border border-white dark:border-slate-700 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+              <div key={index} onClick={() => router.push(tool.path)} className="bg-white/30 dark:bg-slate-900/40 backdrop-blur-2xl border border-white/60 dark:border-slate-800 shadow-sm hover:shadow-xl rounded-2xl md:rounded-4xl p-5 md:p-8 cursor-pointer transition-all duration-300 hover:-translate-y-1 md:hover:-translate-y-2 group flex flex-col justify-between">
+                <div className="w-10 h-10 md:w-14 md:h-14 bg-white/70 dark:bg-slate-800 rounded-xl md:rounded-2xl flex items-center justify-center mb-3 md:mb-5 shadow-sm border border-white dark:border-slate-700 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
                   {tool.icon}
                 </div>
-                <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2 transition-colors">{tool.title}</h3>
-                <p className="text-base text-slate-500 dark:text-slate-400 leading-relaxed font-medium transition-colors">{tool.desc}</p>
+                <div>
+                  <h3 className="text-sm md:text-xl font-bold text-slate-800 dark:text-slate-100 mb-1 md:mb-2 transition-colors">{tool.title}</h3>
+                  <p className="text-[10px] md:text-base text-slate-500 dark:text-slate-400 leading-snug md:leading-relaxed font-medium transition-colors">{tool.desc}</p>
+                </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* ✅ Updated Recent History Section */}
+        {/* Recent History Section */}
         <div>
           <div className="flex items-center gap-3 mb-6 px-2">
             <Clock className="w-6 h-6 text-slate-400 dark:text-slate-500" />
