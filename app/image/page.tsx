@@ -1,18 +1,17 @@
 "use client";
 
 import React, { useState, useRef } from 'react';
-import { Download, Loader2, Image as ImageLucide, X, UploadCloud, ArrowRight } from 'lucide-react';
+import { Download, Loader2, Image as ImageLucide, UploadCloud, ArrowRight } from 'lucide-react';
 import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useAuthStore } from '@/store/useAuthStore';
+import toast, { Toaster } from 'react-hot-toast'; 
 
 export default function ImageToolsPage() {
   // --- Background Remover States ---
   const [isProcessing, setIsProcessing] = useState(false);
   const [processedImage, setProcessedImage] = useState<string | null>(null);
   const [originalImage, setOriginalImage] = useState<string | null>(null);
-  const [showBgModal, setShowBgModal] = useState(false);
-  const [bgFileName, setBgFileName] = useState("converthub-bg-removed");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // --- Format Converter States ---
@@ -21,12 +20,47 @@ export default function ImageToolsPage() {
   const [converterProcessedUrl, setConverterProcessedUrl] = useState<string | null>(null);
   const [converterIsProcessing, setConverterIsProcessing] = useState(false);
   const [selectedFormat, setSelectedFormat] = useState<string>('JPG');
-  const [showConvModal, setShowConvModal] = useState(false);
-  const [convFileName, setConvFileName] = useState("converthub-converted");
   const converterFileInputRef = useRef<HTMLInputElement>(null);
 
   const formats = ['JPG', 'PNG', 'WEBP', 'GIF', 'BMP', 'SVG', 'ICO', 'TIFF'];
-  const { addToHistory } = useAuthStore();
+  const { addToHistory } = useAuthStore() as any;
+
+  // === Error-Free Native File Save Picker Function ===
+  const handleSaveWithPicker = async (url: string, suggestedName: string, mimeType: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      
+      const win = window as any; // TypeScript Error বাইপাস করার জন্য
+
+      // যদি ব্রাউজারে ফোল্ডার পিকার সাপোর্ট না করে (যেমন Firefox বা Mobile), তবে সাধারণ ডাউনলোড হবে
+      if (!win.showSaveFilePicker) {
+        const fallbackUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = fallbackUrl;
+        a.download = suggestedName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(fallbackUrl);
+        toast.success("File downloaded successfully!");
+        return;
+      }
+
+      // মডার্ন ব্রাউজারের জন্য ফোল্ডার পিকার
+      const handle = await win.showSaveFilePicker({
+        suggestedName: suggestedName,
+        types: [{ description: 'Image File', accept: { [mimeType]: ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.bmp', '.svg', '.ico', '.tiff'] } }],
+      });
+      
+      const writable = await handle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      toast.success("File saved successfully!");
+    } catch (err: any) {
+      if (err.name !== 'AbortError') toast.error("Download failed or was cancelled.");
+    }
+  };
 
   // === Logic Functions ===
   const resizeImage = (file: File): Promise<Blob> => {
@@ -65,74 +99,29 @@ export default function ImageToolsPage() {
 
     try {
       const compressedBlob = await resizeImage(file);
+      
+      const formData = new FormData();
+      formData.append('image', compressedBlob, 'image.jpg');
 
-      // 1) Upload selected file to Cloudinary first (returns secure_url)
-      // Requires: NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME and NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
-      const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME as string;
-      const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET as string;
-
-      if (!cloudName || !uploadPreset) {
-        throw new Error('Missing Cloudinary env vars (cloud_name or upload_preset)');
-      }
-
-      const uploadForm = new FormData();
-      uploadForm.append('file', compressedBlob, 'image.jpg');
-      uploadForm.append('upload_preset', uploadPreset);
-
-      const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, {
-        method: 'POST',
-        body: uploadForm,
-      });
-
-      if (!uploadRes.ok) {
-        const errText = await uploadRes.text();
-        throw new Error(errText || 'Cloudinary upload failed');
-      }
-
-      const uploadData = (await uploadRes.json()) as { secure_url?: string };
-      const secureUrl = uploadData?.secure_url;
-
-      if (!secureUrl) {
-        throw new Error('Cloudinary upload did not return secure_url');
-      }
-
-      // 2) Send URL to existing remove-bg conversion API
-      const response = await fetch('/api/remove-bg', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: secureUrl }),
+      const response = await fetch('/api/remove-bg', { 
+        method: 'POST', 
+        body: formData 
       });
 
       const data = await response.json();
+      
       if (response.ok && data.url) {
         setProcessedImage(data.url);
-        addToHistory("Image Tool", "Background Removal");
+        if (addToHistory) addToHistory("Image Tool", "Background Removal");
+        toast.success("Background removed successfully!");
       } else {
-        alert(data.error || "প্রসেসিং ব্যর্থ হয়েছে।");
+        throw new Error(data.error || "Processing failed.");
       }
-    } catch {
-      alert("সার্ভার কানেকশন এরর।");
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || "Server connection error.");
     } finally {
       setIsProcessing(false);
-    }
-  };
-
-  const confirmBgDownload = async () => {
-    if (!processedImage) return;
-    setShowBgModal(false);
-    try {
-      const response = await fetch(processedImage);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${bgFileName || 'image'}.png`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-    } catch {
-      alert("ডাউনলোড করতে সমস্যা হচ্ছে!");
     }
   };
 
@@ -154,13 +143,15 @@ export default function ImageToolsPage() {
         const dataUrl = canvas.toDataURL(`image/${selectedFormat.toLowerCase()}`);
         setConverterProcessedUrl(dataUrl);
         setConverterIsProcessing(false);
-        addToHistory("Image Tool", `Convert to ${selectedFormat}`);
+        if (addToHistory) addToHistory("Image Tool", `Convert to ${selectedFormat}`);
+        toast.success(`Converted to ${selectedFormat}`);
       };
     };
   };
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center py-12 px-4 relative transition-colors duration-300">
+      <Toaster />
       <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
       <input
         type="file"
@@ -170,56 +161,12 @@ export default function ImageToolsPage() {
           if (file) {
             setConverterFile(file);
             setConverterPreview(URL.createObjectURL(file));
+            setConverterProcessedUrl(null); 
           }
         }}
         className="hidden"
         accept="image/*"
       />
-
-      <AnimatePresence>
-        {/* Background Remover Download Modal */}
-        {showBgModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-          >
-            <motion.div
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              className="bg-white dark:bg-slate-900 rounded-3xl p-8 w-full max-w-md"
-            >
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold dark:text-white">Save Result As</h3>
-                <button onClick={() => setShowBgModal(false)}>
-                  <X className="w-6 h-6 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" />
-                </button>
-              </div>
-              <input
-                type="text"
-                value={bgFileName}
-                onChange={(e) => setBgFileName(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent dark:text-white mb-4 outline-none focus:border-purple-500"
-              />
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setShowBgModal(false)}
-                  className="flex-1 px-6 py-3 bg-slate-100 dark:bg-slate-800 dark:text-slate-300 rounded-xl font-bold transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={confirmBgDownload}
-                  className="flex-1 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold transition-colors"
-                >
-                  Download
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-4xl text-center mb-6">
         <h1 className="text-4xl font-extrabold mb-2 text-slate-900 dark:text-white">
@@ -273,7 +220,7 @@ export default function ImageToolsPage() {
             </button>
             {processedImage && (
               <button
-                onClick={() => setShowBgModal(true)}
+                onClick={() => handleSaveWithPicker(processedImage, "converthub-bg-removed.png", "image/png")}
                 className="px-8 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold flex items-center gap-2 transition-colors"
               >
                 <Download className="w-5 h-5" /> Download PNG
@@ -312,7 +259,7 @@ export default function ImageToolsPage() {
                 {formats.map((f) => (
                   <button
                     key={f}
-                    onClick={() => setSelectedFormat(f)}
+                    onClick={() => { setSelectedFormat(f); setConverterProcessedUrl(null); }}
                     className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors ${
                       selectedFormat === f
                         ? 'bg-purple-600 text-white'
@@ -337,56 +284,33 @@ export default function ImageToolsPage() {
                   Convert to {selectedFormat}
                 </button>
               ) : (
-                <button
-                  onClick={() => setShowConvModal(true)}
-                  className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-full font-bold flex items-center gap-2 mx-auto shadow-lg hover:shadow-xl transition-all hover:-translate-y-1"
-                >
-                  <Download className="w-5 h-5" /> Download Result
-                </button>
+                <div className="flex justify-center gap-4">
+                  <button
+                    onClick={() => {
+                      setConverterFile(null);
+                      setConverterPreview(null);
+                      setConverterProcessedUrl(null);
+                    }}
+                    className="px-6 py-3 bg-slate-100 dark:bg-slate-800 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl font-bold transition-colors"
+                  >
+                    Reset
+                  </button>
+                  <button
+                    onClick={() => handleSaveWithPicker(
+                      converterProcessedUrl, 
+                      `converthub-converted.${selectedFormat.toLowerCase()}`, 
+                      `image/${selectedFormat.toLowerCase()}`
+                    )}
+                    className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg hover:shadow-xl transition-all hover:-translate-y-1"
+                  >
+                    <Download className="w-5 h-5" /> Download Result
+                  </button>
+                </div>
               )}
             </div>
           </div>
         )}
       </motion.div>
-
-      {/* Format Converter Modal */}
-      <AnimatePresence>
-        {showConvModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-          >
-            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="bg-white dark:bg-slate-900 rounded-3xl p-8 w-full max-w-md">
-              <h3 className="text-xl font-bold mb-6 dark:text-white">Save {selectedFormat} As</h3>
-              <input
-                type="text"
-                value={convFileName}
-                onChange={(e) => setConvFileName(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent dark:text-white mb-4 outline-none focus:border-purple-500"
-              />
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setShowConvModal(false)}
-                  className="flex-1 px-6 py-3 bg-slate-100 dark:bg-slate-800 dark:text-slate-300 rounded-xl font-bold transition-colors"
-                >
-                  Cancel
-                </button>
-                <a
-                  href={converterProcessedUrl!}
-                  download={`${convFileName}.${selectedFormat.toLowerCase()}`}
-                  onClick={() => setShowConvModal(false)}
-                  className="flex-1 px-6 py-3 bg-pink-600 hover:bg-pink-700 text-white rounded-xl font-bold text-center transition-colors"
-                >
-                  Download
-                </a>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
-

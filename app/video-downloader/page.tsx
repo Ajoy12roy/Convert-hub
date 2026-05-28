@@ -69,7 +69,7 @@ export default function VideoDownloaderPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [finalDownloadUrl, setFinalDownloadUrl] = useState<string | null>(null);
-  const { addToHistory } = useAuthStore();
+  const { addToHistory } = useAuthStore() as any;
   
   const audioRef = useRef<HTMLAudioElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -87,6 +87,7 @@ export default function VideoDownloaderPage() {
     }
   }, [videoUrl]);
 
+  // === Updated Error-Free showSaveFilePicker Native Download Logic ===
   const executeDownload = async (url: string, fileExtension: string) => {
     try {
       setDownloadProgress(1);
@@ -96,22 +97,47 @@ export default function VideoDownloaderPage() {
       const blob = await response.blob();
       const mimeType = format === 'audio' ? 'audio/mpeg' : 'video/mp4';
       const finalBlob = new Blob([blob], { type: mimeType });
+      const suggestedName = `CD_File_${Date.now()}.${fileExtension}`;
       
-      const downloadUrl = window.URL.createObjectURL(finalBlob);
-      const link = document.createElement("a");
-      link.href = downloadUrl;
-      link.download = `CD_File_${Date.now()}.${fileExtension}`;
-      document.body.appendChild(link);
-      link.click();
+      const win = window as any;
+
+      // Fallback for browsers that do not support showSaveFilePicker (Firefox, Safari, Mobile devices)
+      if (!win.showSaveFilePicker) {
+        const downloadUrl = window.URL.createObjectURL(finalBlob);
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.download = suggestedName;
+        document.body.appendChild(link);
+        link.click();
+        
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(downloadUrl);
+        
+        setDownloadProgress(100);
+        toast.success("Download Complete!");
+        return;
+      }
+
+      // Modern desktop browsers with native File System Access API support
+      const acceptTypes = format === 'audio' ? { 'audio/mpeg': ['.mp3'] } : { 'video/mp4': ['.mp4'] };
+      const description = format === 'audio' ? 'Audio File' : 'Video File';
+
+      const handle = await win.showSaveFilePicker({
+        suggestedName: suggestedName,
+        types: [{ description, accept: acceptTypes }],
+      });
       
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(downloadUrl);
+      const writable = await handle.createWritable();
+      await writable.write(finalBlob);
+      await writable.close();
       
       setDownloadProgress(100);
-      toast.success("Download Complete!");
-    } catch (err: unknown) {
+      toast.success("File saved successfully!");
+    } catch (err: any) {
       console.error(err);
-      toast.error("Download failed.");
+      if (err.name !== 'AbortError') {
+        toast.error("Download failed.");
+      }
       setDownloadProgress(0);
     }
   };
@@ -141,7 +167,7 @@ export default function VideoDownloaderPage() {
       if (response.ok && result.url) {
         toast.success("✓ Conversion successful!", { id: loadingToast });
         setFinalDownloadUrl(result.url);
-        addToHistory("Video Downloader", `${selectedPlatform} ${format === 'audio' ? 'MP3' : quality}`); 
+        if (addToHistory) addToHistory("Video Downloader", `${selectedPlatform} ${format === 'audio' ? 'MP3' : quality}`); 
       } else {
         throw new Error(result.text || "Failed to fetch file.");
       }
@@ -155,25 +181,21 @@ export default function VideoDownloaderPage() {
   if (!mounted) return null;
 
   return (
-    // ✅ ডার্ক মোড ব্যাকগ্রাউন্ড এবং ট্রানজিশন অ্যাড করা হয়েছে
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 p-4 md:p-10 flex flex-col items-center font-sans animate-in fade-in duration-700 transition-colors">
       <Toaster position="top-right" />
       
       <div className="w-full max-w-4xl">
         <div className="text-center mb-10">
           <div className="flex justify-center mb-4 animate-bounce duration-2000">
-             {/* ✅ আইকন ব্যাকগ্রাউন্ড আপডেট */}
              <div className="bg-purple-100 dark:bg-purple-900/30 p-4 rounded-3xl text-purple-600 dark:text-purple-400 shadow-sm">
                <Video size={40} />
              </div>
           </div>
-          {/* ✅ টাইটেল কালার আপডেট */}
           <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight italic uppercase">
             <TypewriterText text="Video Downloader" />
           </h1>
         </div>
 
-        {/* ✅ মেইন কার্ড ডার্ক মোড ডিজাইন */}
         <div className="bg-white dark:bg-slate-900 border border-white/40 dark:border-slate-800 rounded-[3rem] p-8 md:p-12 shadow-[0_30px_60px_rgba(0,0,0,0.06)] dark:shadow-2xl relative overflow-hidden animate-in slide-in-from-bottom-8 duration-1000">
           
           <div className="mb-10">
@@ -196,7 +218,6 @@ export default function VideoDownloaderPage() {
           </div>
 
           <div className="mb-8 group">
-            {/* ✅ ইনপুট ফিল্ড ডার্ক মোড */}
             <input 
               type="text"
               value={videoUrl}
@@ -205,7 +226,6 @@ export default function VideoDownloaderPage() {
               className="w-full px-6 py-6 bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-3xl outline-none focus:border-purple-400 dark:focus:border-purple-500 focus:bg-white dark:focus:bg-slate-800 text-slate-700 dark:text-slate-200 font-medium transition-all duration-300"
             />
 
-            {/* ✅ কোয়ালিটি অপশন কার্ড আপডেট */}
             <div className="flex flex-wrap items-center justify-center gap-4 mt-6 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl transition-all shadow-inner border border-slate-100 dark:border-slate-700">
                 <button 
                   onClick={() => { setQuality('1080p'); setFormat('video'); setFinalDownloadUrl(null); }} 

@@ -1,11 +1,6 @@
 import { v2 as cloudinary } from 'cloudinary';
 import { NextResponse } from 'next/server';
 
-type CloudinaryResult = {
-  secure_url?: string;
-};
-
-
 // Cloudinary কনফিগারেশন
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
@@ -15,30 +10,27 @@ cloudinary.config({
 
 export async function POST(req: Request) {
   try {
-    const body = (await req.json()) as { url?: string };
-    const url = body?.url;
+    // ফ্রন্টএন্ড থেকে আসা ফর্ম ডেটা রিসিভ করা
+    const formData = await req.formData();
+    const file = formData.get('image') as File | null;
 
-    if (!url) {
-      return NextResponse.json({ error: "No image url provided" }, { status: 400 });
+    if (!file) {
+      return NextResponse.json({ error: "No image file provided" }, { status: 400 });
     }
 
-    // Fetch image bytes from URL (so frontend can upload to Cloudinary first)
-    const upstream = await fetch(url);
-    if (!upstream.ok) {
-      return NextResponse.json({ error: "Failed to fetch image from url" }, { status: 400 });
-    }
-
-    const arrayBuffer = await upstream.arrayBuffer();
+    // ফাইলটিকে বাফার (Buffer) এ কনভার্ট করা
+    const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    const result = await new Promise<CloudinaryResult>((resolve, reject) => {
+    // ক্লাউডিনারিতে আপলোড এবং ব্যাকগ্রাউন্ড রিমুভাল
+    const result = await new Promise<any>((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
           transformation: [
-            { effect: "background_removal" },
-            { format: "png" },
+            { effect: "background_removal" } // ব্যাকগ্রাউন্ড রিমুভ করার কমান্ড
           ],
-          resource_type: "auto",
+          format: "png", // আউটপুট ফরম্যাট
+          resource_type: "image",
         },
         (error, result) => {
           if (error) {
@@ -46,10 +38,7 @@ export async function POST(req: Request) {
             reject(error);
             return;
           }
-
-          resolve({
-            secure_url: (result as CloudinaryResult | null | undefined)?.secure_url,
-          });
+          resolve(result);
         }
       );
       uploadStream.end(buffer);
@@ -57,20 +46,19 @@ export async function POST(req: Request) {
 
     if (!result?.secure_url) {
       return NextResponse.json(
-        { error: "Cloudinary did not return secure_url" },
+        { error: "Cloudinary did not return a secure URL" },
         { status: 500 }
       );
     }
 
+    // সফল হলে ফ্রন্টএন্ডে URL পাঠিয়ে দেওয়া
     return NextResponse.json({ url: result.secure_url });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : undefined;
+    
+  } catch (error: any) {
     console.error("Server Route Error:", error);
-
     return NextResponse.json(
-      { error: message || "Failed to process background removal" },
+      { error: error.message || "Failed to process background removal" },
       { status: 500 }
     );
   }
 }
-

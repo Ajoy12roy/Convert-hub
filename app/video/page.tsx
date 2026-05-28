@@ -2,9 +2,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 // IMPORTANT: keep ffmpeg usage client-only to avoid Vercel prerender (SSR/Static) crashes.
-// We will lazy-load FFmpeg inside useEffect.
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
-
+import type { FFmpeg } from '@ffmpeg/ffmpeg'; // ✅ Safe to import type for TypeScript
 
 import { Upload, FileVideo, Loader2, Download, RefreshCcw, Play, Scissors, Music } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
@@ -48,32 +47,9 @@ export default function VideoConverterPage() {
   const [mounted, setMounted] = useState(false);
   const [ffmpegError, setFfmpegError] = useState<string | null>(null);
   
-  const ffmpegRef = useRef<import('@ffmpeg/ffmpeg').FFmpeg | null>(null);
-
-  // Load FFmpeg only on the client (prevents `ffmpeg.wasm does not support nodejs` during Vercel build)
-  useEffect(() => {
-    let cancelled = false;
-
-    const run = async () => {
-      try {
-        const mod = await import('@ffmpeg/ffmpeg');
-        if (cancelled) return;
-        const { FFmpeg } = mod as unknown as { FFmpeg: new () => import('@ffmpeg/ffmpeg').FFmpeg };
-        ffmpegRef.current = new FFmpeg();
-      } catch (e) {
-        console.error('Failed to load ffmpeg', e);
-      }
-    };
-
-    run();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
+  const ffmpegRef = useRef<FFmpeg | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { addToHistory } = useAuthStore();
+  const { addToHistory } = useAuthStore() as any; // Ignore type error for store
 
   const formats = [
     { name: 'MP3', color: 'bg-purple-500', hover: 'hover:bg-purple-600', shadow: 'shadow-purple-200 dark:shadow-purple-900/20' },
@@ -87,14 +63,19 @@ export default function VideoConverterPage() {
 
   const activeFormat = formats.find(f => f.name === targetFormat) || formats[0];
 
-  const load = async () => {
+  // ✅ Fixed Race Condition: Load everything together
+  const loadFfmpeg = async () => {
     setFfmpegError(null);
     setLoaded(false);
     try {
-      const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
-      const ffmpeg = ffmpegRef.current;
-      if (!ffmpeg) throw new Error('FFmpeg engine not initialized');
+      // 1. Dynamically import FFmpeg so Vercel doesn't crash during build
+      const { FFmpeg } = await import('@ffmpeg/ffmpeg');
+      const ffmpeg = new FFmpeg();
+      ffmpegRef.current = ffmpeg;
 
+      // 2. Load Core and WASM URLs
+      const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
+      
       await ffmpeg.load({
         coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
         wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
@@ -111,7 +92,7 @@ export default function VideoConverterPage() {
   };
 
   useEffect(() => { 
-    load(); 
+    loadFfmpeg(); 
     setMounted(true); 
   }, []);
 
@@ -133,10 +114,13 @@ export default function VideoConverterPage() {
       const ffmpeg = ffmpegRef.current;
       const inputName = 'input_file';
       const outputName = `output.${targetFormat.toLowerCase()}`;
+      
       await ffmpeg.writeFile(inputName, await fetchFile(file));
+      
       const args = targetFormat === 'MP3' 
         ? ['-i', inputName, '-vn', '-ab', '192k', outputName]
         : ['-i', inputName, outputName];
+        
       await ffmpeg.exec(args);
       const data = await ffmpeg.readFile(outputName);
 
@@ -147,11 +131,15 @@ export default function VideoConverterPage() {
       // Ensure we hand Blob a BlobPart that is backed by a real ArrayBuffer.
       const safeBytes = u8.buffer instanceof ArrayBuffer ? new Uint8Array(u8) : new Uint8Array(u8.slice().buffer);
       const url = URL.createObjectURL(new Blob([safeBytes]));
+      
       setDownloadUrl(url);
-      addToHistory("Video Tool", `Convert to ${targetFormat}`);
+      if (addToHistory) {
+        addToHistory("Video Tool", `Convert to ${targetFormat}`);
+      }
       toast.success("Conversion Complete!");
-    } catch {
+    } catch (error) {
       toast.error("Conversion failed!");
+      console.error(error);
     } finally {
       setIsConverting(false);
     }
@@ -256,7 +244,6 @@ export default function VideoConverterPage() {
                 <button
                   onClick={startConversion}
                   disabled={isConverting || !file || !loaded}
-
                   className={`group relative w-full md:w-auto overflow-hidden text-white px-12 py-5 rounded-2xl font-black text-xl flex items-center justify-center gap-4 shadow-2xl transition-all duration-500 disabled:opacity-90 
                     ${activeFormat.color} ${activeFormat.hover} ${activeFormat.shadow}`}
                 >
