@@ -7,8 +7,18 @@ import { ArrowLeft, EyeOff, Eye, Sparkles, Loader2 } from 'lucide-react';
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
+// ✅ ১. Zustand স্টোরটি ইমপোর্ট করা হলো
+import { useAuthStore } from '@/store/useAuthStore';
 
 type AuthView = 'signin' | 'signup' | 'forgot' | 'otp' | 'reset';
+
+// পার্টিকলগুলোর টাইপ ডিফাইন করা হলো
+interface Particle {
+  top: string;
+  left: string;
+  duration: number;
+  delay: number;
+}
 
 export default function AuthPage() {
   const [view, setView] = useState<AuthView>('signin');
@@ -16,6 +26,10 @@ export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const router = useRouter();
+
+  // Hydration ফিক্স করার জন্য পার্টিকল স্টেট
+  const [particles, setParticles] = useState<Particle[]>([]);
+  const [isMounted, setIsMounted] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -27,6 +41,15 @@ export default function AuthPage() {
   const [newPassword, setNewPassword] = useState("");
 
   useEffect(() => {
+    setIsMounted(true);
+    const generatedParticles = [...Array(40)].map(() => ({
+      top: `${Math.random() * 100}%`,
+      left: `${Math.random() * 100}%`,
+      duration: 2 + Math.random() * 2,
+      delay: Math.random() * 3
+    }));
+    setParticles(generatedParticles);
+
     const savedData = localStorage.getItem("rememberedUser");
     if (savedData) {
       const { email, password } = JSON.parse(savedData);
@@ -171,7 +194,13 @@ export default function AuthPage() {
         toast.error("Invalid credentials!");
       } else {
         toast.success("Welcome back!");
-        router.push("/");
+
+        // ✅ ফিক্স ও আপডেট: সরাসরি স্টেট সেট করার বদলে স্টোরের স্মার্ট loginUser অ্যাকশনটি কল করা হলো
+        // এটি ব্রাউজারের ডিকশনারি (savedProfiles) চেক করে ইউজারের পূর্বের নাম ও ছবি ফিরিয়ে আনবে।
+        useAuthStore.getState().loginUser(formData.email, formData.name || "User");
+        
+        // হোম পেজে রিডাইরেক্ট করা হলো
+        router.push("/"); 
       }
     } catch {
       toast.error("An error occurred during sign in.");
@@ -232,13 +261,13 @@ export default function AuthPage() {
       <div className="absolute inset-0 bg-[radial-gradient(#27272a_1px,transparent_1px)] bg-size-[20px_20px] opacity-15"></div>
 
       <div className="absolute inset-0 pointer-events-none">
-        {[...Array(40)].map((_, i) => (
+        {isMounted && particles.map((p, i) => (
           <motion.span
             key={i}
             className="absolute w-2 h-2 bg-[#D4F82E] rounded-full"
-            style={{ top: `${Math.random() * 100}%`, left: `${Math.random() * 100}%` }}
+            style={{ top: p.top, left: p.left }}
             animate={{ opacity: [0, 1, 0], scale: [0.5, 1.2, 0.5] }}
-            transition={{ duration: 2 + Math.random() * 2, repeat: Infinity, delay: Math.random() * 3 }}
+            transition={{ duration: p.duration, repeat: Infinity, delay: p.delay }}
           />
         ))}
       </div>
@@ -313,7 +342,7 @@ export default function AuthPage() {
                         onChange={(e) => setFormData({...formData, password: e.target.value})}
                         placeholder="••••••••" 
                         className="w-full bg-[#121214] border border-white/5 rounded-xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-[#D4F82E]/40 transition-all" 
-                      />
+                    />
                       <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500">
                         {showPassword ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                       </button>
